@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Возможности · Islet</title>
+<meta name="description" content="Девять вкладок Islet, загрузки с процентом, буфер, полка, чат с ИИ и как остров себя ведёт.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geologica:wght@300..800&family=Golos+Text:wght@400..700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+
+<nav class="nav" id="nav" aria-label="Навигация">
+  <div class="nav-bar">
+    <a class="nav-word" href="index.html">islet</a>
+    <span class="mini-eyes" aria-hidden="true"><b></b><b></b></span>
+    <a class="nav-dl" href="download.html" aria-label="Скачать Islet">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12m0 0-5-5m5 5 5-5M5 20h14"/></svg>
+    </a>
+  </div>
+  <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="navLinks" aria-label="Меню"></button>
+  <div class="nav-links" id="navLinks">
+    <a href="index.html">Главная</a><a href="features.html" aria-current="page">Возможности</a><a href="eyes.html">Глазки</a><a href="download.html">Скачать</a>
+  </div>
+</nav>
+
+<main>
+  <header class="phead">
+    <div class="wrap">
+      <nav class="crumb" aria-label="Путь"><a href="index.html">islet</a><span>/</span><span>возможности</span></nav>
+      <h1>Девять вкладок <span class="thin">и&nbsp;капсула</span></h1>
+      <p class="lede">Наведи на остров, и он раскроется. Вкладки идут в том же порядке, что в приложении. Листай вниз или выбирай сам.</p>
+    </div>
+  </header>
+
+  <section>
+    <div class="wrap">
+      <div class="tour-pin" id="tourPin">
+        <ol class="tour-list" id="tourList"></ol>
+        <div>
+          <div class="monitor">
+            <div class="screen" id="screen">
+              <div class="progress"><i id="prog"></i></div>
+              <div class="counter"><b id="cnt">01</b> / <span id="cntAll">10</span></div>
+            </div>
+          </div>
+          <p class="tour-cap" id="tourCap"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow"><i></i>Подробнее</span>
+        <h2>Мелочи, которые <span class="thin">экономят день</span></h2>
+      </div>
+      <div class="bento">
+        <article class="card c-dl shell lift"><div class="core">
+          <div class="txt">
+            <span class="tag">новое</span>
+            <h3>Загрузка с настоящим процентом</h3>
+            <p>Кольцо вокруг иконки заполняется по мере скачивания, рядом размер и скорость. Работает с любым браузером. Chrome, Edge, Яндекс Браузер, Brave, Vivaldi и Opera дают процент, Firefox и Zen — размер и скорость.</p>
+          </div>
+          <div class="vis dl-demo" id="dlDemo">
+            <div class="dl-pill">
+              <div class="ring-wrap" id="dlRing"><div class="ring" id="ring"></div><div class="ico">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" id="dlIco"><path d="M12 4v12m0 0-5-5m5 5 5-5M5 20h14"/></svg>
+              </div></div>
+              <div class="dl-txt"><b>IsletSetup.exe</b><span id="dlLine">0% · 0 МБ из 140 МБ</span></div>
+            </div>
+            <button class="replay" id="dlReplay" type="button">ещё раз</button>
+          </div>
+        </div></article>
+
+        <article class="card c-nt shell lift"><div class="core">
+          <div class="txt"><h3>Уведомления с иконками</h3><p>Telegram, Chrome и всё остальное приходит в капсулу. Клик открывает нужное приложение.</p></div>
+          <div class="vis"><div class="crop"><img src="assets/notifs.png" alt="Список уведомлений в Islet" width="1616" height="936" style="object-position: 50% 30%" loading="lazy"></div></div>
+        </div></article>
+
+        <article class="card c-qa shell lift"><div class="core">
+          <div class="txt"><h3>Быстрые действия</h3><p>Восемь кнопок на главной, без поиска по меню.</p></div>
+          <div class="vis qa"><span>Область</span><span>Весь экран</span><span>Текст с экрана</span><span>QR-код</span><span>Пипетка</span><span>Чистый текст</span><span>Запись экрана</span><span>Команда</span></div>
+        </div></article>
+
+        <article class="card c-cl shell lift"><div class="core">
+          <div class="txt"><h3>Буфер и полка</h3><p>История копирования с поиском. Файлы можно бросить на остров и забрать позже.</p></div>
+          <div class="vis"><div class="crop"><img src="assets/clips.png" alt="История буфера обмена" width="1616" height="936" style="object-position: 50% 35%" loading="lazy"></div></div>
+        </div></article>
+
+        <article class="card c-ai shell lift"><div class="core">
+          <div class="txt"><h3>Чат с ИИ</h3><p>Спросить что-то, не открывая браузер. Ответ прямо в капсуле.</p></div>
+          <div class="vis"><div class="crop"><img src="assets/chat.png" alt="Чат с ИИ в Islet" width="1616" height="1016" style="object-position: 50% 40%" loading="lazy"></div></div>
+        </div></article>
+
+        <article class="card c-mu shell lift"><div class="core">
+          <div class="txt"><h3>Текст в один клик</h3><p>Раскладка, регистр, транслит, JSON и Base64 во вкладке «Текст».</p></div>
+        </div></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow"><i></i>Поведение</span>
+        <h2>Как он <span class="thin">себя ведёт</span></h2>
+      </div>
+      <ul class="rules">
+        <li class="lift"><b>Раскрывается с задержкой</b><span>Наведи курсор и задержи на мгновение. Если мышь просто пролетела мимо, остров не раскроется.</span></li>
+        <li class="lift"><b>Сворачивается сам</b><span>Увёл курсор, и капсула возвращается в покой. Нажимать ничего не нужно.</span></li>
+        <li class="lift"><b>Не мешает в играх и кино</b><span>Прячется, когда игра или видео идут на весь экран. За обычными развёрнутыми окнами остаётся на месте.</span></li>
+        <li class="lift"><b>Не грузит систему</b><span>Анимации идут, только пока ты работаешь с островом. В покое он почти не тратит ресурсы.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="final">
+    <div class="wrap">
+      <div class="shell lift"><div class="core">
+        <span class="eyebrow"><i></i>140 МБ · бесплатно</span>
+        <h2>Попробуй у&nbsp;себя</h2>
+        <div class="cta-row">
+          <a class="btn btn-main" href="download.html">Перейти к загрузке
+            <span class="knob"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12m0 0-5-5m5 5 5-5M5 20h14"/></svg></span>
+          </a>
+          <a class="btn btn-ghost" href="eyes.html">Посмотреть глазки
+            <span class="knob"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></span>
+          </a>
+        </div>
+      </div></div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand"><span class="foot-word">islet</span><p>Динамический остров для Windows 10 и 11. Бесплатно, MIT.</p></div>
+      <div class="foot-col"><b>Страницы</b><a href="index.html">Главная</a><a href="features.html">Возможности</a><a href="eyes.html">Глазки</a><a href="download.html">Скачать</a></div>
+      <div class="foot-col"><b>Проект</b><a data-link="github" href="https://github.com/PlaybackG/islet" target="_blank" rel="noopener">GitHub</a><a href="https://github.com/PlaybackG/islet/blob/main/LICENSE" target="_blank" rel="noopener">Лицензия MIT</a><a href="https://rama2555.github.io/nusa" target="_blank" rel="noopener">Глазки: nusa</a></div>
+    </div>
+    <div class="foot-base"><span>Идея и поведение — по мотивам Island</span><span>winnotch.space</span></div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>
