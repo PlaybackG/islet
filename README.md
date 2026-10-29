@@ -29,3 +29,7 @@ npx electron .
 ## Благодарности
 
 Идея и поведение — по мотивам Island. Глазки — по мотивам [rama2555.github.io/nusa](https://rama2555.github.io/nusa).
+
+## Лицензия
+
+[MIT](LICENSE)
