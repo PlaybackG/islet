@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; media-src 'self' file: data:; style-src 'self' 'unsafe-inline'; script-src 'self'">
+<title>Islet — настройки</title>
+<style>
+  :root {
+    --bg: #08080a; --card: #121215; --line: rgba(255,255,255,.07); --line2: rgba(255,255,255,.12);
+    --fg: #f5f5f7; --dim: rgba(235,235,245,.56); --faint: rgba(235,235,245,.34);
+    --accent: #0a84ff; --accent2: #0071e3; --grad: linear-gradient(180deg, #2f97ff, var(--accent2));
+    --red: #ff453a; --green: #30d158; --ease: cubic-bezier(.2,.8,.2,1);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; color: var(--fg); font: 14px/1.45 "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  body { display: grid; grid-template-columns: 214px 1fr; background:
+    radial-gradient(900px 420px at 85% -12%, rgba(10,132,255,.07), transparent 62%),
+    radial-gradient(700px 360px at 10% 110%, rgba(255,255,255,.025), transparent 60%), var(--bg); }
+  ::selection { background: rgba(10,132,255,.4); }
+  ::-webkit-scrollbar { width: 10px; } ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 99px; border: 3px solid transparent; background-clip: padding-box; }
+  ::-webkit-scrollbar-thumb:hover { background-color: rgba(255,255,255,.18); }
+  nav { padding: 20px 12px 14px; border-right: 1px solid var(--line); display: flex; flex-direction: column; gap: 2px; background: linear-gradient(180deg, rgba(255,255,255,.025), rgba(255,255,255,.008)); }
+  nav .logo { display: flex; align-items: center; gap: 11px; padding: 2px 10px 20px; font: 600 17px/1 "Segoe UI Variable Display", "Segoe UI", sans-serif; letter-spacing: -.01em; }
+  nav .logo .pill { width: 38px; height: 16px; border-radius: 99px; background: #000; box-shadow: inset 0 0 0 1px rgba(255,255,255,.16), 0 4px 14px -4px rgba(10,132,255,.45); position: relative; }
+  nav .logo .pill::before, nav .logo .pill::after { content: ''; position: absolute; top: 4px; width: 4px; height: 8px; border-radius: 2px; background: #fff; box-shadow: 0 0 6px rgba(255,255,255,.7); }
+  nav .logo .pill::before { left: 12px; } nav .logo .pill::after { right: 12px; }
+  nav a { --i: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'><circle cx='12' cy='12' r='4'/></svg>");
+    position: relative; display: flex; align-items: center; gap: 11px; padding: 8px 12px; border-radius: 9px; color: var(--dim); text-decoration: none; cursor: pointer; transition: background .15s, color .15s; }
+  nav a::before { content: ''; width: 17px; height: 17px; flex: none; background: currentColor; opacity: .85; -webkit-mask: var(--i) center / contain no-repeat; }
+  nav a:hover { background: rgba(255,255,255,.045); color: var(--fg); }
+  nav a.on { background: rgba(255,255,255,.07); color: var(--fg); box-shadow: inset 0 0 0 1px rgba(255,255,255,.06); }
+  nav a.on::before { background: #7fb8ff; opacity: 1; }
+  nav a.on::after { content: ''; position: absolute; left: -12px; top: 9px; bottom: 9px; width: 3px; border-radius: 0 3px 3px 0; background: var(--grad); }
+  nav a[data-s=general] { --i: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'><path d='M21 4h-7M10 4H3M21 12h-9M8 12H3M21 20h-5M12 20H3M14 2v4M8 10v4M16 18v4'/></svg>"); }
+  nav a[data-s=eyes] { --i: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linejoin='round'><path d='M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z'/><circle cx='12' cy='12' r='3'/></svg>"); }
+  nav a[data-s=hotkeys] { --i: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'><rect x='2' y='5' width='20' height='14' rx='3'/><path d='M6 9h.01M10 9h.01M14 9h.01M18 9h.01M7 15h10'/></svg>"); }
+  nav a[data-s=ai] { --i: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linejoin='round' stroke-linecap='round'><path d='M11 3l1.9 5.1L18 10l-5.1 1.9L11 17l-1.9-5.1L4 10l5.1-1.9z'/><path d='M19 3v4M17 5h4M19 17v4M17 19h4'/></svg>"); }
+  nav a[data-s=weather] { --i: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linejoin='round'><path d='M17.5 19H8a6 6 0 1 1 5.7-8h1.3a4.5 4.5 0 1 1 2.5 8z'/></svg>"); }
+  nav a[data-s=clips] { --i: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linejoin='round'><rect x='8' y='2' width='8' height='4' rx='1'/><path d='M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2'/></svg>"); }
+  nav a[data-s=claude] { --i: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M4 17l6-6-6-6M12 19h8'/></svg>"); }
+  nav .ver { margin-top: auto; padding: 10px 12px 2px; color: var(--faint); font-size: 11.5px; letter-spacing: .02em; }
+  main { overflow-y: auto; padding: 30px 38px 48px; }
+  section { display: none; max-width: 660px; }
+  section.on { display: block; animation: rise .32s var(--ease) both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } }
+  h1 { font: 600 27px/1.15 "Segoe UI Variable Display", "Segoe UI", sans-serif; letter-spacing: -.022em; margin: 0 0 22px; }
+  h2 { font-size: 13px; font-weight: 600; color: var(--dim); letter-spacing: -.003em; margin: 28px 4px 9px; }
+  .card { position: relative; border-radius: 14px; border: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(255,255,255,.048), rgba(255,255,255,.018)) , var(--card);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 12px 32px -18px rgba(0,0,0,.8); overflow: hidden; }
+  .row { display: flex; align-items: center; gap: 14px; padding: 13px 16px; border-top: 1px solid var(--line); transition: background .15s; min-height: 52px; }
+  .row:hover { background: rgba(255,255,255,.018); }
+  .row:first-child { border-top: 0; }
+  .row > label:first-child, .row > .lbl { flex: 1; min-width: 0; }
+  .row .sub { display: block; color: var(--dim); font-size: 12px; margin-top: 2px; line-height: 1.4; }
+  input[type=text], input[type=password], input[type=number], select, textarea {
+    background: rgba(0,0,0,.28); border: 1px solid var(--line2); color: var(--fg); border-radius: 10px; padding: 8px 11px; font: inherit; outline: none; transition: border-color .15s, box-shadow .15s; }
+  input:hover, select:hover, textarea:hover { border-color: rgba(255,255,255,.18); }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(10,132,255,.22); }
+  select { appearance: none; padding-right: 30px; cursor: pointer; background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23aaa' stroke-width='2.4' stroke-linecap='round'><path d='M7 10l5 5 5-5'/></svg>"); background-repeat: no-repeat; background-position: right 9px center; background-size: 14px; }
+  select option { background: #1c1c20; }
+  .w-wide { width: 300px; }
+  .w-mid { width: 200px; }
+  .w-num { width: 80px; }
+  textarea { width: 100%; min-height: 70px; resize: vertical; }
+  .stack { padding: 11px 14px; border-top: 1px solid var(--line); }
+  .stack:first-child { border-top: 0; }
+  .stack > label { display: block; margin-bottom: 6px; }
+  button { background: rgba(255,255,255,.075); color: var(--fg); border: 0; border-radius: 10px; padding: 8px 15px; font: 500 13.5px/1.2 "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif; cursor: pointer;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.07), inset 0 1px 0 rgba(255,255,255,.06); transition: background .15s, box-shadow .15s, transform .1s, filter .15s; }
+  button:hover { background: rgba(255,255,255,.12); }
+  button:active { transform: scale(.97); }
+  button:focus-visible { outline: 0; box-shadow: 0 0 0 3px rgba(10,132,255,.35); }
+  button.primary { background: var(--grad); box-shadow: inset 0 1px 0 rgba(255,255,255,.22), 0 6px 18px -6px rgba(10,132,255,.4); font-weight: 600; }
+  button.primary:hover { filter: brightness(1.1); }
+  button.danger { color: var(--red); }
+  button.danger:hover { background: rgba(255,69,58,.12); }
+  .sw { position: relative; width: 44px; height: 26px; flex: none; }
+  .sw input { opacity: 0; width: 0; height: 0; position: absolute; }
+  .sw span { position: absolute; inset: 0; border-radius: 99px; background: rgba(255,255,255,.13); box-shadow: inset 0 0 0 1px rgba(255,255,255,.06); transition: background .25s var(--ease), box-shadow .25s; cursor: pointer; }
+  .sw span::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.35); transition: transform .25s var(--ease); }
+  .sw input:checked + span { background: var(--grad); box-shadow: 0 0 14px -3px rgba(10,132,255,.4); }
+  .sw input:checked + span::after { transform: translateX(18px); }
+  .sw input:focus-visible + span { box-shadow: 0 0 0 3px rgba(10,132,255,.35); }
+  .hk { width: 170px; text-align: center; cursor: pointer; caret-color: transparent; font-family: "Cascadia Mono", Consolas, monospace !important; font-size: 12.5px !important; }
+  .hk.rec { border-color: var(--accent); color: #7fb8ff; box-shadow: 0 0 0 3px rgba(10,132,255,.22); }
+  .hk.err { border-color: var(--red); }
+  .note { color: var(--dim); font-size: 12.5px; margin: 10px 4px; line-height: 1.5; }
+  .ok { color: var(--green); }
+  .bad { color: var(--red); }
+  .results { display: flex; flex-direction: column; }
+  .results button { text-align: left; background: transparent; border-radius: 0; padding: 10px 16px; border-top: 1px solid var(--line); box-shadow: none; font-weight: 400; }
+  .results button:hover { background: rgba(255,255,255,.05); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips button { padding: 6px 13px; border-radius: 99px; font-size: 13px; font-weight: 400; }
+  .chips button.on { background: var(--grad); box-shadow: 0 4px 14px -6px rgba(10,132,255,.4); }
+  #saved { position: fixed; right: 20px; bottom: 16px; display: flex; align-items: center; gap: 7px; padding: 7px 13px 7px 11px; border-radius: 99px; color: var(--fg); font-size: 12.5px;
+    background: rgba(28,28,32,.92); box-shadow: inset 0 0 0 1px rgba(255,255,255,.08), 0 10px 30px -10px rgba(0,0,0,.8); opacity: 0; transform: translateY(6px); transition: opacity .25s, transform .25s var(--ease); pointer-events: none; }
+  #saved::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); }
+  #saved.show { opacity: 1; transform: none; }
+  code { background: rgba(255,255,255,.07); padding: 2px 6px; border-radius: 6px; font: 12px "Cascadia Mono", Consolas, monospace; }
+  .eyehead { display: flex; align-items: center; justify-content: space-between; }
+  .eyehead b { color: var(--fg); text-transform: none; letter-spacing: 0; }
+  .eyehead button { text-transform: none; letter-spacing: 0; font-weight: 500; padding: 6px 12px; font-size: 12.5px; }
+  .eyecat { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--faint); margin: 18px 4px 8px; }
+  .eyegrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(116px, 1fr)); gap: 9px; }
+  .eyetile { position: relative; background: linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.015)), var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 9px 9px 7px; cursor: pointer; text-align: center; transition: border-color .15s, transform .15s var(--ease), box-shadow .15s; }
+  .eyetile:hover { border-color: rgba(255,255,255,.18); transform: translateY(-2px); box-shadow: 0 10px 24px -14px rgba(0,0,0,.9); }
+  .eyetile.on { border-color: transparent; background: linear-gradient(var(--card), var(--card)) padding-box, var(--grad) border-box; border: 1px solid transparent; box-shadow: 0 8px 26px -12px rgba(10,132,255,.4); }
+  .eyetile .cap { position: relative; height: 38px; background: var(--pbg, #000); border-radius: 19px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.1); overflow: hidden; }
+  .eyetile .nm { font-size: 12px; color: var(--dim); margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .eyetile.on .nm { color: var(--fg); font-weight: 600; }
+  /* мастер первого запуска: те же поля настроек, по шагам */
+  /* Окно мастера прозрачное: фон, скругление и волосяная рамка рисуются здесь, clip-path срезает углы у всего,
+     включая выезжающую полосу заголовка. Высота окна подгоняется под шаг, поэтому снизу нет пустоты. */
+  body.wizard { --r: 22px; --spring: cubic-bezier(.32,.72,0,1); display: block; background: none; clip-path: inset(0 round var(--r)); }
+  body.wizard::before { content: ''; position: fixed; inset: 0; z-index: -1; border-radius: var(--r); background:
+    radial-gradient(520px 260px at 50% -6%, rgba(10,132,255,.16), transparent 70%),
+    radial-gradient(420px 240px at 100% 100%, rgba(94,92,230,.07), transparent 70%), #050506; }
+  body.wizard::after { content: ''; position: fixed; inset: 0; z-index: 60; border-radius: var(--r); pointer-events: none;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.09), inset 0 1px 0 rgba(255,255,255,.07); }
+  body.wizard nav { display: none; }
+  body.wizard section { max-width: none; }
+  body.wizard section.on { animation: none; }
+  body.wizard main { height: 100%; padding: 34px 44px 0; }
+  .wiz { max-width: 600px; margin: 0 auto; }
+  .wtop { display: flex; align-items: center; gap: 14px; margin-bottom: 26px; }
+  .weyebrow { flex: none; padding: 4px 11px; border-radius: 99px; font-size: 10.5px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: #9cc9ff;
+    background: rgba(10,132,255,.1); box-shadow: inset 0 0 0 1px rgba(10,132,255,.22); font-variant-numeric: tabular-nums; }
+  .wdots { flex: 1; display: flex; gap: 5px; }
+  .wdots i { flex: 1; height: 3px; border-radius: 2px; background: rgba(255,255,255,.08); overflow: hidden; position: relative; }
+  .wdots i::after { content: ''; position: absolute; inset: 0; border-radius: inherit; background: var(--grad); transform: scaleX(0); transform-origin: left; transition: transform .6s var(--spring); }
+  .wdots i.on::after { transform: none; }
+  .wiz h1 { margin: 0 0 8px; font-size: 32px; letter-spacing: -.028em; }
+  .wiz > .note { margin: 0 0 24px; font-size: 14px; line-height: 1.55; color: var(--dim); max-width: 520px; }
+  #wizBody > * { animation: wrise .6s var(--spring) both; }
+  #wizBody > :nth-child(2) { animation-delay: .06s; } #wizBody > :nth-child(3) { animation-delay: .12s; } #wizBody > :nth-child(n+4) { animation-delay: .16s; }
+  @keyframes wrise { from { opacity: 0; transform: translateY(14px); filter: blur(4px); } }
+  /* двойная рамка: карточка лежит в тонком «лотке», радиусы концентричны (тень с разлётом повторяет скругление) */
+  body.wizard .card { border-radius: 16px; margin: 6px 6px 18px; box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 0 0 6px rgba(255,255,255,.022), 0 0 0 7px rgba(255,255,255,.05), 0 20px 40px -24px rgba(0,0,0,.9); }
+  #wizBody > h2:first-child { margin-top: 4px; }
+  .wnav { position: sticky; bottom: 0; display: flex; gap: 8px; align-items: center; padding: 18px 0 24px; margin-top: 8px; background: linear-gradient(transparent, #050506 40%); }
+  .wnav span { flex: 1; }
+  .wnav button { padding: 10px 18px; border-radius: 99px; transition: background .2s, box-shadow .2s, transform .3s var(--spring), filter .2s; }
+  .wnav button:active { transform: scale(.97); }
+  #wizNext { display: flex; align-items: center; gap: 12px; padding: 5px 5px 5px 22px; }
+  #wizNext .arr { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.18); box-shadow: inset 0 1px 0 rgba(255,255,255,.2); transition: transform .4s var(--spring); }
+  #wizNext .arr svg { width: 12px; height: 12px; stroke: #fff; stroke-width: 1.6; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  #wizNext:hover .arr { transform: translateX(2px) scale(1.06); }
+  #wizSkip { background: transparent; box-shadow: none; color: var(--dim); }
+  #wizSkip:hover { color: var(--fg); background: rgba(255,255,255,.05); }
+  .whero { position: relative; display: flex; justify-content: center; padding: 34px 0 32px; }
+  .whero::before { content: ''; position: absolute; left: 50%; top: 50%; width: 420px; height: 150px; transform: translate(-50%, -50%); background: radial-gradient(closest-side, rgba(10,132,255,.24), rgba(10,132,255,.06) 55%, transparent); pointer-events: none; }
+  .whero .cap { position: relative; width: 200px; height: 38px; border-radius: 19px; background: var(--pbg, #000); box-shadow: inset 0 0 0 1px rgba(255,255,255,.14), 0 0 0 4px rgba(255,255,255,.03), 0 18px 40px -12px rgba(0,0,0,.9); zoom: 1.7; }
+  .wlist { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; color: var(--dim); }
+  .wlist li { position: relative; padding: 13px 16px 13px 46px; border-radius: 14px; background: rgba(255,255,255,.028); box-shadow: inset 0 0 0 1px rgba(255,255,255,.06), inset 0 1px 0 rgba(255,255,255,.04); line-height: 1.45; }
+  .wlist li::before { content: ''; position: absolute; left: 15px; top: 50%; width: 20px; height: 20px; margin-top: -10px; border-radius: 50%; background: rgba(10,132,255,.14); box-shadow: inset 0 0 0 1px rgba(10,132,255,.35); }
+  .wlist li::after { content: ''; position: absolute; left: 21.5px; top: 50%; width: 7px; height: 3.5px; margin-top: -3px; border: solid #8cc2ff; border-width: 0 0 1.5px 1.5px; transform: rotate(-45deg); }
+  .wlist b { color: var(--fg); font-weight: 600; }
+  details.stack summary { cursor: pointer; color: var(--dim); font-size: 12.5px; }
+  details.stack summary:hover { color: var(--fg); }
+  details.stack .sub { display: block; color: var(--dim); font-size: 12px; margin-top: 8px; }
+  /* своя полоса заголовка мастера: спрятана, выезжает при наведении на верхний край, как в Firefox */
+  #tbHot, #tbar { display: none; }
+  body.wizard #tbHot { display: block; position: fixed; left: 0; right: 0; top: 0; height: 6px; z-index: 50; }
+  body.wizard #tbar { display: flex; position: fixed; left: 0; right: 0; top: 0; height: 34px; z-index: 51; align-items: stretch;
+    background: rgba(18,18,21,.92); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); box-shadow: 0 10px 24px -14px rgba(0,0,0,.8);
+    transform: translateY(-100%); transition: transform .22s var(--ease); }
+  body.tb-on #tbar { transform: none; }
+  #tbar .t { flex: 1; display: flex; align-items: center; padding-left: 14px; gap: 8px; font-size: 12px; color: var(--dim); -webkit-app-region: drag; }
+  #tbar .t i { width: 16px; height: 7px; border-radius: 4px; background: #000; box-shadow: inset 0 0 0 1px rgba(255,255,255,.25); }
+  #tbar button { -webkit-app-region: no-drag; width: 46px; padding: 0; border-radius: 0; background: transparent; box-shadow: none; color: var(--dim); display: grid; place-items: center; }
+  #tbar button:hover { background: rgba(255,255,255,.08); color: var(--fg); }
+  #tbar button[data-w=close]:hover { background: #c42b1c; color: #fff; }
+  #tbar svg { width: 10px; height: 10px; stroke: currentColor; stroke-width: 1.1; fill: none; }
+  input[type=range] { width: 190px; accent-color: var(--accent); }
+  .val { width: 52px; text-align: right; color: var(--dim); font-size: 12.5px; }
+  pre.json { margin: 6px 0 0; padding: 10px 12px; background: rgba(255,255,255,.05); border-radius: 8px; font: 12px/1.45 Consolas, monospace; color: var(--dim); white-space: pre-wrap; word-break: break-all; user-select: text; }
+</style>
+<link rel="stylesheet" href="eyes.css">
+</head>
+<body>
+<div id="tbHot"></div>
+<div id="tbar"><div class="t"><i></i>Islet — первый запуск</div>
+  <button data-w="min" title="Свернуть"><svg viewBox="0 0 10 10"><path d="M0 5.5h10"/></svg></button>
+  <button data-w="close" title="Закрыть"><svg viewBox="0 0 10 10"><path d="M0 0l10 10M10 0L0 10"/></svg></button>
+</div><nav id="nav">
+  <div class="logo"><span class="pill"></span>Islet</div>
+  <a data-s="general" class="on">Основное</a>
+  <a data-s="eyes">Глазки</a>
+  <a data-s="hotkeys">Горячие клавиши</a>
+  <a data-s="ai">ИИ</a>
+  <a data-s="weather">Погода</a>
+  <a data-s="clips">Буфер обмена</a>
+  <a data-s="claude">Claude Code</a>
+  <div class="ver" id="ver"></div>
+</nav>
+<main>
+
+  <section data-s="welcome">
+    <div class="wiz">
+      <div class="wtop"><span class="weyebrow" id="wizEye"></span><div class="wdots" id="wizDots"></div></div>
+      <h1 id="wizT"></h1>
+      <p class="note" id="wizS"></p>
+      <div id="wizBody"></div>
+      <div class="wnav"><button id="wizSkip">Пропустить</button><span></span><button id="wizBack">Назад</button><button class="primary" id="wizNext"><span id="wizNextT">Дальше</span><i class="arr"><svg viewBox="0 0 12 12"><path d="M2 6h8M6.5 2.5L10 6l-3.5 3.5"/></svg></i></button></div>
+    </div>
+  </section>
+
+  <section data-s="general" class="on">
+    <h1>Основное</h1>
+    <div class="card">
+      <div class="row"><label>Запускать вместе с Windows</label><label class="sw"><input type="checkbox" data-k="autostart"><span></span></label></div>
+      <div class="row"><label>Прятать остров в полноэкранных приложениях<span class="sub">Игры, видео на весь экран, презентации</span></label><label class="sw"><input type="checkbox" data-k="hideFullscreen"><span></span></label></div>
+      <div class="row"><label>Показывать завершённые загрузки</label><label class="sw"><input type="checkbox" data-k="watchDownloads"><span></span></label></div>
+      <div class="row"><label>Вид загрузки<span class="sub">Кольцо — маленький значок у часов вместо карточки</span></label>
+        <select data-k="dlStyle"><option value="card">Карточка</option><option value="ring">Кольцо у часов</option></select></div>
+      <div class="stack"><label>Не считать загрузками<span class="sub">Маски имён через запятую, например <code>*.part, ~*</code>. Файлы .tmp не считаются всегда</span></label><textarea data-list="dlIgnore" spellcheck="false"></textarea></div>
+      <div class="row"><label>Уведомления Windows в острове<span class="sub">Сообщения из Telegram, почты и других приложений</span></label><label class="sw"><input type="checkbox" data-k="winNotifs"><span></span></label></div>
+      <div class="row"><label>Прятать всплывашки Windows<span class="sub">Пока Islet открыт, уведомления приходят только в остров. В центре уведомлений они остаются, при выходе из Islet всё возвращается</span></label><label class="sw"><input type="checkbox" data-k="hideWinBanners"><span></span></label></div>
+      <div class="row"><label>Открывать при наведении<span class="sub">Если задержать курсор на острове</span></label><label class="sw"><input type="checkbox" data-k="hoverOpen"><span></span></label></div>
+      <div class="row"><label>Автоскрытие<span class="sub">Остров прячется за край экрана и выезжает, когда курсор у верхнего края</span></label><label class="sw"><input type="checkbox" data-k="autoHide"><span></span></label></div>
+      <div class="row"><label>Монитор<span class="sub">Где показывать остров</span></label><select data-k="display" id="dispSel"></select></div>
+      <div class="row"><label>Размер острова</label><input type="range" min="70" max="140" step="5" data-k="islandScale"><span class="val" data-out="islandScale"></span></div>
+      <div class="row"><label>Сдвиг от центра<span class="sub">Влево или вправо, в точках</span></label><input type="range" min="-600" max="600" step="10" data-k="islandOffset"><span class="val" data-out="islandOffset"></span></div>
+      <div class="row"><label>Ускорение видеокартой<span class="sub">Выключи, если остров мерцает или рисуется с артефактами. Сработает после перезапуска Islet</span></label><label class="sw"><input type="checkbox" data-k="gpu"><span></span></label></div>
+    </div>
+    <h2>Музыка</h2>
+    <div class="card">
+      <div class="row"><label>Вид плеера<span class="sub">На вкладке «Главная»</span></label>
+        <select data-k="playerStyle"><option value="center">Обложка по центру</option><option value="fill">Обложка на весь плеер</option><option value="compact">Компактный</option></select></div>
+      <div class="row"><label>Текст песни<span class="sub">Кнопка в плеере, текст с LRCLIB</span></label><label class="sw"><input type="checkbox" data-k="lyrics"><span></span></label></div>
+      <div class="row"><label>Кто живёт на острове под музыку<span class="sub">Пока играет музыка, вместо глазок</span></label><select class="w-mid" data-k="musicCharacter" id="musicChar"></select></div>
+    </div>
+    <h2>Таймер и напоминания</h2>
+    <div class="card">
+      <div class="row"><label>Звук</label><select class="w-mid" id="sndSel"></select><button id="sndTest">Проверить</button></div>
+      <div class="row"><label>Светиться, пока не ответишь<span class="sub">Край острова мягко мигает, пока карточка ждёт</span></label><label class="sw"><input type="checkbox" data-k="alertGlow"><span></span></label></div>
+    </div>
+    <h2>Программы</h2>
+    <div class="card">
+      <div class="stack"><label>Прятать остров в этих программах<span class="sub">Имена .exe через запятую</span></label><textarea data-list="hideApps" spellcheck="false" placeholder="obs64.exe, vlc.exe"></textarea></div>
+      <div class="stack"><label>Не прятать в этих программах<span class="sub">Остров остаётся на виду даже с автоскрытием</span></label><textarea data-list="showApps" spellcheck="false" placeholder="spotify.exe"></textarea></div>
+    </div>
+    <h2>В капсуле</h2>
+    <div class="card">
+      <div class="row"><label>Часы</label><label class="sw"><input type="checkbox" data-k="pill.clock"><span></span></label></div>
+      <div class="row"><label>Погода</label><label class="sw"><input type="checkbox" data-k="pill.weather"><span></span></label></div>
+      <div class="row"><label>Заряд батареи<span class="sub">Только на ноутбуке</span></label><label class="sw"><input type="checkbox" data-k="pill.battery"><span></span></label></div>
+    </div>
+    <h2>Индикаторы</h2>
+    <div class="card">
+      <div class="row"><label>Caps Lock</label><label class="sw"><input type="checkbox" data-k="indicators.caps"><span></span></label></div>
+      <div class="row"><label>Смена раскладки</label><label class="sw"><input type="checkbox" data-k="indicators.layout"><span></span></label></div>
+      <div class="row"><label>Зарядка и низкий заряд</label><label class="sw"><input type="checkbox" data-k="indicators.battery"><span></span></label></div>
+      <div class="row"><label>VPN</label><label class="sw"><input type="checkbox" data-k="indicators.vpn"><span></span></label></div>
+    </div>
+    <h2>Папки и поиск</h2>
+    <div class="card">
+      <div class="row"><label>Скриншоты</label><input type="text" class="w-wide" data-k="shotDir" spellcheck="false"><button data-open="shotDir">Открыть</button></div>
+      <div class="row"><label>Записи экрана</label><input type="text" class="w-wide" data-k="recDir" spellcheck="false"><button data-open="recDir">Открыть</button></div>
+      <div class="row"><label>Поиск в интернете<span class="sub">Запрос добавляется в конец адреса</span></label>
+        <select class="w-wide" data-k="searchUrl">
+          <option value="https://yandex.ru/search/?text=">Яндекс</option>
+          <option value="https://www.google.com/search?q=">Google</option>
+          <option value="https://duckduckgo.com/?q=">DuckDuckGo</option>
+          <option value="https://www.bing.com/search?q=">Bing</option>
+          <option value="custom">Свой адрес…</option>
+        </select></div>
+      <div class="row" id="searchCustomRow" hidden><label>Свой адрес поиска<span class="sub">Запрос подставится вместо <code>%s</code> или в конец</span></label><input type="text" class="w-wide" data-k="searchCustom" placeholder="https://example.com/search?q=%s" spellcheck="false"></div>
+    </div>
+    <h2></h2>
+    <div class="card"><div class="row"><label>Первая настройка<span class="sub">Пройти по шагам заново: капсула, глазки, погода, поведение</span></label><button id="wizAgain">Открыть</button></div></div>
+    <h2></h2>
+    <div class="card"><div class="row"><label>Закрыть Islet полностью</label><button class="danger" id="quit">Выйти</button></div></div>
+  </section>
+
+  <section data-s="eyes">
+    <h1>Глазки</h1>
+    <div class="card">
+      <div class="row"><label>Показывать глазки на острове</label><label class="sw"><input type="checkbox" data-k="eyes.enabled"><span></span></label></div>
+      <div class="row"><label>Следить за курсором</label><label class="sw"><input type="checkbox" data-k="eyes.follow"><span></span></label></div>
+      <div class="row"><label>Засыпать, если тебя нет<span class="sub">Минут без мыши и клавиатуры. 0 — никогда не спать</span></label><input type="number" min="0" max="120" class="w-num" data-k="eyes.dozeMin"></div>
+      <div class="row"><label>Менять стиль самим<span class="sub">Каждые N минут — случайные глазки</span></label>
+        <select data-k="eyes.shuffle"><option value="0">Нет</option><option value="1">1 мин</option><option value="5">5 мин</option><option value="15">15 мин</option><option value="30">30 мин</option><option value="60">Час</option></select></div>
+    </div>
+    <p class="note">Двойное моргание, удивление при перетаскивании файлов и радость после пробуждения — всегда с ними.</p>
+    <h2 class="eyehead"><span>Стиль · <b id="eyeNow"></b></span><button id="eyeRandom">Случайные</button></h2>
+    <div id="eyeGallery"></div>
+    <p class="note">Наведи на плитку — глазки моргнут или покажут свой фокус. Идеи стилей: Nusa, RoboEyes, Expressive Eyes (pycozmo, MIT) и каомодзи.</p>
+  </section>
+
+  <section data-s="hotkeys">
+    <h1>Горячие клавиши</h1>
+    <div class="card" id="hotkeys"></div>
+    <p class="note">Кликни по полю и нажми сочетание. Backspace — убрать сочетание.</p>
+  </section>
+
+  <section data-s="ai">
+    <h1>ИИ</h1>
+    <p class="note">Подходит любой сервис с OpenAI-совместимым API — свой ключ, без подписок. Ключи хранятся зашифрованными средствами Windows.</p>
+    <div class="chips" id="presets"></div>
+    <h2>Чат и обработка текста</h2>
+    <div class="card">
+      <div class="row"><label>Адрес API</label><input type="text" class="w-wide" id="aiBase" spellcheck="false"></div>
+      <div class="row"><label>Модель</label><input type="text" class="w-wide" id="aiModel" spellcheck="false"><button id="aiCheck">Проверить ключ</button></div>
+      <div class="row" id="aiModelsRow" hidden><label>Модели сервиса<span class="sub" id="aiModelsN"></span></label><select class="w-wide" id="aiModels"></select></div>
+      <div class="row"><label>Ключ API<span class="sub" id="aiKeyState"></span></label><input type="password" class="w-wide" id="aiKey" placeholder="вставь ключ" spellcheck="false"></div>
+      <div class="stack"><label>Инструкция для чата</label><textarea id="aiSystem" spellcheck="false"></textarea></div>
+    </div>
+    <h2>Распознавание речи</h2>
+    <div class="card">
+      <div class="row"><label>Адрес API<span class="sub">Пусто — тот же, что для чата</span></label><input type="text" class="w-wide" id="sttBase" spellcheck="false"></div>
+      <div class="row"><label>Модель</label><input type="text" class="w-wide" id="sttModel" spellcheck="false"></div>
+      <div class="row"><label>Ключ<span class="sub" id="sttKeyState"></span></label><input type="password" class="w-wide" id="sttKey" placeholder="пусто — ключ чата" spellcheck="false"></div>
+    </div>
+    <h2>Агенты в терминале</h2>
+    <p class="note">Claude Code, Codex, Gemini CLI и Qwen Code выбираются прямо в чате — кнопкой слева от поля ввода. Там же локальные модели Ollama и LM Studio.</p>
+    <div class="card">
+      <div class="row"><label>Что агенту можно<span class="sub" id="agentModeNote"></span></label><select class="w-wide" id="agentMode">
+        <option value="read">Только читать</option><option value="edit">Править файлы</option><option value="all">Всё без спроса</option>
+      </select></div>
+      <div class="row"><label>Рабочая папка<span class="sub">Пусто — домашняя папка</span></label><input type="text" class="w-wide" id="agentCwd" placeholder="C:\Users\…\project" spellcheck="false"></div>
+      <div class="row"><label>Своя команда<span class="sub">Вопрос приходит в stdin, ответ читается из stdout</span></label><input type="text" class="w-wide" id="agentCmd" placeholder="например: ollama run llama3.2" spellcheck="false"></div>
+    </div>
+    <div style="margin-top:14px;display:flex;gap:10px;align-items:center"><button class="primary" id="aiSave">Сохранить</button><span class="note" id="aiMsg"></span></div>
+  </section>
+
+  <section data-s="weather">
+    <h1>Погода</h1>
+    <div class="card">
+      <div class="row"><span class="lbl">Сейчас: <b id="cityNow"></b></span></div>
+      <div class="row"><input type="text" id="citySearch" placeholder="Найти город…" style="flex:1" spellcheck="false"><button id="cityFind">Найти</button></div>
+      <div class="results" id="cityResults"></div>
+    </div>
+    <p class="note">Прогноз — MET Norway, поиск городов — OpenStreetMap. Без ключей и регистрации.</p>
+  </section>
+
+  <section data-s="clips">
+    <h1>Буфер обмена</h1>
+    <div class="card">
+      <div class="row"><label>Сколько записей хранить<span class="sub">Закреплённые не удаляются</span></label><input type="number" min="20" max="2000" class="w-num" data-k="clip.max"></div>
+      <div class="stack"><label>Не запоминать из этих программ<span class="sub" style="color:var(--dim);display:block;font-size:12px">Имена .exe через запятую — например менеджеры паролей</span></label><textarea id="clipExclude" spellcheck="false"></textarea></div>
+      <div class="row"><label>Очистить историю (кроме закреплённых)</label><button class="danger" id="clipClear">Очистить</button></div>
+    </div>
+  </section>
+
+  <section data-s="claude">
+    <h1>Claude Code</h1>
+    <p class="note">Остров может показывать, когда Claude Code думает, ждёт тебя или закончил. Для этого в <code>~/.claude/settings.json</code> добавляются хуки, которые шлют события на <code>127.0.0.1</code> — только на этот компьютер. Перед изменением файла делается резервная копия.</p>
+    <div class="card">
+      <div class="row"><span class="lbl">Статус: <b id="ccState">…</b></span><button class="primary" id="ccInstall">Подключить</button><button class="danger" id="ccRemove">Отключить</button></div>
+    </div>
+    <p class="note" id="ccMsg"></p>
+    <h2>Ответы с острова</h2>
+    <div class="card">
+      <div class="row"><label>Отвечать Claude с острова<span class="sub">Разрешить или запретить действие, выбрать вариант ответа</span></label><label class="sw"><input type="checkbox" data-k="ccAsk"><span></span></label></div>
+      <div class="row"><span class="lbl">Хук ответов: <b id="ccAskState">…</b><span class="sub">Добавит в <code>~/.claude/settings.json</code> два хука — запросы разрешений и AskUserQuestion</span></span><button class="primary" id="ccAskInstall">Добавить хук</button><button class="danger" id="ccAskRemove">Убрать хук</button></div>
+      <details class="stack"><summary>Добавить вручную</summary><span class="sub">Вставь в <code>hooks</code> файла <code>~/.claude/settings.json</code>:</span><pre class="json" id="ccAskJson"></pre></details>
+    </div>
+    <p class="note" id="ccAskMsg"></p>
+  </section>
+
+</main>
+<div id="saved">Сохранено ✓</div>
+<script src="eyes.js"></script>
+<script src="settings.js"></script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+# зависимости и сборки
+node_modules/
+dist/
+*.log
+
+# ключи и пароли — никогда в репозиторий
+*.key
+.env
+.env.*
+.secrets/
+secrets/
+
+# внутренние заметки для сессий
+islet/HANDOFF.md
+
+# аудио ролика: чужой трек, минусовка, озвучка
+videos/**/assets/audio/*.mp3
+videos/**/assets/audio/*.wav
+videos/**/renders/
+.hyperframes/

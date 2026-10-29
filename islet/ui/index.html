@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' file: data: blob:; media-src 'self' file: blob: data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'">
+<title>Islet</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="eyes.css">
+</head>
+<body>
+<div id="island" class="island idle">
+  <!-- мягкое свечение вокруг, пока карточка ждёт ответа (таймер, напоминание, Claude) -->
+  <div class="halo" aria-hidden="true"></div>
+  <div class="shoulder l"></div><div class="shoulder r"></div>
+  <!-- жидкий нижний край: тянется к курсору -->
+  <svg class="goo" id="goo" aria-hidden="true">
+    <defs><linearGradient id="edgeG" gradientUnits="userSpaceOnUse" x1="0" x2="100" y1="0" y2="0">
+      <stop offset="0" stop-opacity="0"/><stop offset=".07"/><stop offset=".93"/><stop offset="1" stop-opacity="0"/>
+    </linearGradient>
+    <!-- обрезка капсулы по тому же контуру: SVG-клип сглажен, а clip-path: path() даёт «лесенку» на цветной подложке -->
+    <clipPath id="gooClip"><path id="gooClipPath"/></clipPath></defs>
+    <path id="gooPath"/><path id="gooLine" stroke="url(#edgeG)"/>
+  </svg>
+
+  <!-- Компактная капсула -->
+  <div class="compact" id="compact">
+    <div class="glow" id="glow"></div>
+    <div class="slot left" id="cLeft"></div>
+    <div class="eyes" id="eyes">
+      <div class="eye"></div><div class="eye"></div>
+      <div class="zzz"><span>z</span><span>z</span></div>
+    </div>
+    <div class="toast-text" id="cText"></div>
+    <div class="slot right" id="cRight"></div>
+  </div>
+
+  <!-- Развёрнутая панель -->
+  <div class="panel" id="panel">
+    <div class="phead">
+      <div class="tabs" id="tabs"></div>
+      <div class="phead-r">
+        <button class="hbtn" id="pinBtn" title="Закрепить панель"></button>
+        <button class="hbtn" id="setBtn" title="Настройки"></button>
+      </div>
+    </div>
+    <div class="views" id="views">
+
+      <section class="view" data-view="home">
+        <div class="home">
+         <div class="home-top">
+          <div class="home-l">
+            <div class="card media-card" id="mediaCard">
+              <!-- раскладки: «заливка» — обложка фоном, «по центру» — мягкое зеркало по бокам -->
+              <div class="m-bg" id="mBg"></div>
+              <div class="m-mirror l" id="mMirL"></div><div class="m-mirror r" id="mMirR"></div>
+              <div class="art big" id="mArt"></div>
+              <div class="media-info">
+                <div class="m-text">
+                  <div class="m-app" id="mApp"></div>
+                  <div class="m-title" id="mTitle"></div>
+                  <div class="m-artist" id="mArtist"></div>
+                </div>
+                <div class="m-prog">
+                  <div class="m-progress"><div class="bar" id="mBar"></div></div>
+                  <div class="m-times"><span id="mPos"></span><span id="mDur"></span></div>
+                </div>
+                <div class="m-controls">
+                  <button class="ic-btn" data-media="prev" title="Назад"></button>
+                  <button class="ic-btn play" data-media="playpause" id="mPlay" title="Пауза / играть"></button>
+                  <button class="ic-btn" data-media="next" title="Вперёд"></button>
+                </div>
+              </div>
+              <div class="m-lyrics" id="mLyrics" hidden></div>
+              <button class="lyr-btn" id="mLyrBtn" title="Текст песни" hidden></button>
+              <div class="m-empty" id="mEmpty"><i data-i="play"></i><div>Ничего не играет</div><div class="dim small">Включи музыку — она появится здесь</div></div>
+            </div>
+            <div class="card slider-card">
+              <button class="ic-btn small" id="volMute" title="Без звука"></button>
+              <input type="range" min="0" max="100" id="volRange" class="range">
+              <span class="val" id="volVal"></span>
+              <button class="out-pill" id="volOut" title="Устройство вывода"><i data-i="speaker"></i><span id="volOutName">Динамики</span><i data-i="chev"></i></button>
+              <div class="out-menu" id="outMenu" hidden></div>
+            </div>
+          </div>
+          <div class="tool-grid" id="toolGrid">
+            <button class="tool" data-tool="shot"><i data-i="region"></i><span>Область</span></button>
+            <button class="tool" data-tool="full"><i data-i="screen"></i><span>Весь экран</span></button>
+            <button class="tool" data-tool="ocr"><i data-i="scan"></i><span>Текст с экрана</span></button>
+            <button class="tool" data-tool="qr"><i data-i="qr"></i><span>QR-код</span></button>
+            <button class="tool" data-tool="color"><i data-i="pipette"></i><span>Пипетка</span></button>
+            <button class="tool" data-tool="clean"><i data-i="eraser"></i><span>Чистый текст</span></button>
+            <button class="tool" data-tool="rec" id="recBtn"><i data-i="camera"></i><span>Запись экрана</span></button>
+            <button class="tool" data-tool="cmd"><i data-i="search"></i><span>Команда</span></button>
+          </div>
+         </div>
+         <div class="card dock" id="dock"></div>
+        </div>
+      </section>
+
+      <section class="view" data-view="clips">
+        <div class="row">
+          <label class="search grow"><i data-i="search"></i><input id="clipSearch" placeholder="Поиск по истории" spellcheck="false"></label>
+          <button class="sq-btn" id="clipClear" title="Очистить историю (закреплённые останутся)"></button>
+        </div>
+        <div class="list" id="clipList"></div>
+        <div class="foot"><span>Клик — вставить · Shift+клик — только копировать</span><span>⇅ Enter</span></div>
+      </section>
+
+      <section class="view" data-view="notifs">
+        <div class="row">
+          <span class="grow dim small" id="notifInfo"></span>
+          <button class="sq-btn" id="notifClear" title="Очистить все уведомления"></button>
+        </div>
+        <div class="list" id="notifList"></div>
+        <div class="foot"><span>Клик — открыть приложение · Delete — убрать</span><span>⇅ Enter</span></div>
+      </section>
+
+      <section class="view" data-view="shelf">
+        <div class="row shelf-head">
+          <button class="drag-pill" id="shelfDrag" draggable="true" title="Перетащи в любое окно или папку"></button>
+          <span class="grow dim small" id="shelfInfo"></span>
+          <button class="dim-btn" id="shelfCopy" title="Копировать файлы"></button>
+          <button class="dim-btn" id="shelfClear"></button>
+        </div>
+        <div class="shelf" id="shelfGrid"></div>
+        <div class="shelf-drop" id="shelfDrop"><i data-i="shelf"></i><b>Брось сюда файлы</b><span>Они полежат на полке, пока не понадобятся</span></div>
+      </section>
+
+      <section class="view" data-view="text">
+        <div class="split">
+          <div class="text-col">
+            <div class="card text-card">
+              <textarea id="txt" placeholder="Вставь или напиши текст…" spellcheck="false"></textarea>
+              <div class="text-foot">
+                <span class="grow"></span>
+                <button class="hbtn" id="txtLoad" title="Взять из буфера"></button>
+                <button class="hbtn" id="txtCopy" title="Копировать"></button>
+                <button class="hbtn" id="txtPaste" title="Вставить в окно (Ctrl+Enter)"></button>
+              </div>
+            </div>
+            <div class="dim small text-info" id="txtInfo"></div>
+          </div>
+          <div class="text-side">
+            <div class="seg" id="txtSeg"><button data-seg="tools" class="on">Инструменты</button><button data-seg="ai"><span class="spark"></span>ИИ</button></div>
+            <div class="tgrid" id="txtTools">
+              <button data-t="layout">Раскладка</button><button data-t="upper">ВЕРХНИЙ</button>
+              <button data-t="lower">нижний</button><button data-t="title">Каждое Слово</button>
+              <button data-t="sentence">Предложение</button><button data-t="translit">Транслит</button>
+              <button data-t="breaks">Убрать переносы</button><button data-t="spaces">Лишние пробелы</button>
+              <button data-t="json-pretty">JSON красиво</button><button data-t="json-line">JSON в строку</button>
+              <button data-t="b64-enc">→ Base64</button><button data-t="b64-dec">Base64 →</button>
+            </div>
+            <div class="tgrid ai" id="txtAi" hidden>
+              <button data-t="ai-translate">Перевести</button><button data-t="ai-fix">Исправить ошибки</button>
+              <button data-t="ai-short">Короче</button><button data-t="ai-formal">Официальнее</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" data-view="chat">
+        <div class="chat" id="chatLog"></div>
+        <div class="chat-files" id="chatFiles"></div>
+        <div class="chat-bar">
+          <button class="hbtn" id="chatNew" title="Новый чат"></button>
+          <button class="src-chip" id="chatSrc" title="Кто отвечает: ключ API, локальная модель или агент"></button>
+          <div class="src-menu" id="chatSrcMenu" hidden></div>
+          <div class="chat-field">
+            <button class="hbtn" id="chatAttach" title="Прикрепить файл, картинку или PDF"></button>
+            <input type="file" id="chatFile" multiple hidden accept="image/png,image/jpeg,image/webp,image/gif,.pdf,.txt,.md,.csv,.tsv,.json,.xml,.yaml,.yml,.ini,.log,.html,.css,.js,.ts,.jsx,.tsx,.py,.ps1,.bat,.sh,.sql,.c,.h,.cpp,.cs,.java,.go,.rs,.kt,.swift,.php,.rb,.lua">
+            <textarea id="chatIn" rows="1" placeholder="Сообщение для ИИ…" spellcheck="false"></textarea>
+            <button class="hbtn" id="chatMic" title="Голосом"></button>
+            <button class="send-btn" id="chatSend" title="Отправить"></button>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" data-view="notes">
+        <div class="note-main">
+          <div class="note-tabs" id="noteTabs"></div>
+          <div class="card note-card">
+            <textarea id="noteText" placeholder="Пиши сюда что угодно: номер заказа, список дел, кусок кода. Сохраняется само." spellcheck="false"></textarea>
+          </div>
+          <div class="note-foot">
+            <span class="dim small" id="noteInfo"></span>
+            <span class="grow"></span>
+            <span class="note-ok" id="noteOk" title="Сохранено"></span>
+            <button class="bell-pill" id="noteRemind" title="Напомнить об этой заметке"></button>
+            <button class="hbtn sm" id="noteCopy" title="Копировать"></button>
+            <button class="hbtn sm" id="noteDel" title="Удалить заметку"></button>
+          </div>
+        </div>
+        <div class="card time-card">
+          <div class="tm-top">
+            <div class="tm-ring">
+              <svg viewBox="0 0 84 84"><circle cx="42" cy="42" r="37" class="bg"/><circle cx="42" cy="42" r="37" class="fg" id="tmArc" transform="rotate(-90 42 42)"/></svg>
+              <span id="tmLeft">5:00</span>
+              <input id="tmEdit" class="tm-edit" placeholder="мин" spellcheck="false" hidden>
+            </div>
+            <div class="tm-btns">
+              <button class="tm-go" id="tmGo"></button>
+              <button class="tm-alt" id="tmAlt"></button>
+            </div>
+          </div>
+          <div class="tm-chips" id="tmChips"><button data-m="5">5</button><button data-m="10">10</button><button data-m="15">15</button><button data-m="25">25</button><button data-m="45">45</button><span>мин</span></div>
+          <div class="tm-sep"></div>
+          <div class="rem-h" id="remHead"></div>
+          <div class="rem-list" id="remList"></div>
+          <div class="rem-hint" id="remHint"></div>
+          <input id="remText" class="fld" placeholder="Позвонить маме завтра в 9" spellcheck="false">
+          <div class="rem-chips" id="remChips"><button data-q="через 10 минут">10 мин</button><button data-q="через 30 минут">30 мин</button><button data-q="через 1 час">1 час</button><button data-q="через 3 часа">3 часа</button><button data-q="завтра в 9:00">Завтра 9:00</button></div>
+        </div>
+      </section>
+
+      <section class="view" data-view="weather">
+        <div class="weather" id="weather"><div class="empty">Загружаю погоду…</div></div>
+      </section>
+
+      <section class="view" data-view="system">
+        <div class="sys-tiles" id="sysTiles"></div>
+        <div class="sys-power" id="sysPower">
+          <button data-p="lock"><i data-i="lock"></i><span>Блокировка</span></button>
+          <button data-p="sleep"><i data-i="moon"></i><span>Сон</span></button>
+          <button data-p="restart"><i data-i="refresh"></i><span>Перезагрузка</span></button>
+          <button data-p="shutdown"><i data-i="power"></i><span>Выключение</span></button>
+        </div>
+      </section>
+
+      <section class="view" data-view="command">
+        <label class="cmd-bar"><i data-i="search"></i><input id="cmdIn" placeholder="Посчитать, валюта, таймер, напоминание, приложение…" spellcheck="false"><kbd id="cmdKbd"></kbd></label>
+        <div class="list" id="cmdList"></div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<script src="../node_modules/qrcode-generator/dist/qrcode.js"></script>
+<script src="icons.js"></script>
+<script src="text.js"></script>
+<script src="eyes.js"></script>
+<script src="app.js"></script>
+<script src="views.js"></script>
+</body>
+</html>

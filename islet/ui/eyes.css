@@ -1,0 +1,82 @@
+/* ---------- Глазки ---------- */
+/* Значения по умолчанию — глазки Nusa; стили из eyes.js меняют их через переменные. */
+
+.eyes {
+  --lx: 0px; --ly: 0px; --eg: 15px;
+  --ew: 8.4px; --eh: 12.4px; --er: 50%; --ec: #fff;
+  --gl: rgba(120, 190, 255, .6); --gl2: rgba(80, 140, 255, .28);
+  position: absolute; left: 50%; top: 50%;
+  display: flex; gap: var(--eg); align-items: center; justify-content: center;
+  transform: translate(calc(-50% + var(--lx)), calc(-50% + var(--ly)));
+  transition: transform .14s var(--ease, cubic-bezier(.2, .8, .2, 1)), opacity .3s var(--ease, cubic-bezier(.2, .8, .2, 1));
+  pointer-events: none;
+}
+.island:not(.show-eyes) .eyes { opacity: 0; }
+.eye {
+  position: relative; flex: none;
+  width: var(--ew); height: var(--eh); border-radius: var(--er); background: var(--ec);
+  box-shadow: var(--gl) 0 0 6px 1px, var(--gl2) 0 0 14px 4px;
+  rotate: var(--rot, 0deg);
+  transition: transform .07s ease-in, height .35s var(--ease, ease), width .35s var(--ease, ease), border-radius .35s var(--ease, ease),
+    background .2s, box-shadow .35s, clip-path .35s var(--ease, ease), rotate .35s;
+  border: 0 solid transparent;
+}
+
+/* ---- виды ---- */
+.eyes.one .eye:nth-child(2) { display: none; }
+/* вырезанная форма срезала бы box-shadow — светится контейнер */
+.eyes.cl { filter: drop-shadow(0 0 2.5px var(--gl)) drop-shadow(0 0 6px var(--gl2)); }
+.eyes.cl .eye { box-shadow: none; }
+.eyes.ring .eye { background: transparent; border: var(--rw) solid var(--ec); box-shadow: var(--gl) 0 0 6px 1px, inset var(--gl) 0 0 4px 0; }
+.eyes.glyph .eye { background: transparent; box-shadow: none; display: grid; place-items: center; }
+.eyes.glyph .eye::before {
+  content: attr(data-g); font: 700 var(--fs, 14px)/1 Consolas, "Cascadia Mono", "Segoe UI Symbol", "Nirmala UI", "Yu Gothic UI", monospace;
+  color: var(--ec); text-shadow: 0 0 4px var(--gl), 0 0 10px var(--gl2);
+}
+.eyes.pupil .eye { overflow: hidden; }
+.eyes.pupil .eye::before {
+  content: ''; position: absolute; left: 50%; top: 50%;
+  width: var(--pw); height: var(--ph); border-radius: var(--pr, 50%); background: var(--pc);
+  transform: translate(calc(-50% + var(--lx) * var(--pk, 1)), calc(-50% + var(--ly) * var(--pk, 1)));
+  transition: transform .14s;
+}
+.eyes.hl .eye::after { content: ''; position: absolute; left: 55%; top: 16%; width: 30%; height: 24%; border-radius: 50%; background: rgba(255, 255, 255, .92); }
+
+/* ---- редкие эффекты: Eyes.blink иногда ставит .fx вместо моргания, анимация одна и короткая ---- */
+.eyes.fx[data-fx="glitch"] .eye { animation: eg-glitch .45s steps(2) 1; }
+.eyes.fx[data-fx="flicker"] .eye { animation: eg-flicker .5s steps(1) 1; }
+.eyes.fx[data-fx="cursor"] .eye { animation: eg-cursor .9s steps(1) 1; }
+.eyes.fx[data-fx="pulse"] .eye { animation: eg-pulse .6s ease-in-out 1; }
+.eyes.fx[data-fx="spin"] .eye { animation: eg-spin .6s ease-in-out 1; }
+.eyes.fx[data-fx="hue"] .eye { animation: eg-hue .9s linear 1; }
+.eyes.fx[data-fx="shake"] .eye { animation: eg-shake .45s ease-in-out 1; }
+.eyes.fx[data-fx="laugh"] .eye { animation: eg-laugh .45s ease-in-out 1; }
+.eyes.fx[data-fx="scan"] .eye::before { animation: eg-scan .9s ease-in-out 1; }
+@keyframes eg-glitch { 0%, 100% { translate: 0 0; } 25% { translate: -2px 0; } 50% { translate: 2px -1px; } 75% { translate: -1px 1px; } }
+@keyframes eg-flicker { 0% { opacity: 1; } 15% { opacity: .2; } 30% { opacity: 1; } 45% { opacity: .45; } 60% { opacity: 1; } }
+@keyframes eg-cursor { 0%, 100% { opacity: 1; } 30%, 70% { opacity: 0; } }
+@keyframes eg-pulse { 50% { scale: 1.25; } }
+@keyframes eg-spin { to { rotate: 360deg; } }
+@keyframes eg-hue { to { filter: hue-rotate(360deg); } }
+@keyframes eg-shake { 20% { translate: -2px 0; } 40% { translate: 2px 0; } 60% { translate: -2px 0; } 80% { translate: 1px 0; } }
+@keyframes eg-laugh { 20% { translate: 0 -2px; } 40% { translate: 0 1px; } 60% { translate: 0 -2px; } 80% { translate: 0 1px; } }
+@keyframes eg-scan { 25% { translate: -10px 0; } 75% { translate: 10px 0; } }
+
+/* ---- состояния: моргание, удивление, сон, радость — поверх любого стиля ---- */
+.eyes.blink .eye { transform: scaleY(.1); }
+.eyes.wide .eye { transform: scale(1.35); transition-duration: .3s; }
+.eyes.sleep .eye {
+  height: 2.4px; width: max(9px, var(--ew)); border-radius: 2px; clip-path: none !important;
+  background: var(--ec); border-width: 0; box-shadow: var(--gl) 0 0 5px 1px;
+}
+.eyes.happy .eye {
+  width: 10px; height: 10px; background: transparent; border: 2.4px solid transparent; border-top-color: var(--ec); border-radius: 50%;
+  clip-path: none !important; box-shadow: none; filter: drop-shadow(0 0 3px var(--gl)); transform: translateY(3px);
+}
+.eyes.sleep .eye::before, .eyes.sleep .eye::after, .eyes.happy .eye::before, .eyes.happy .eye::after { display: none; }
+.eyes.sleep, .eyes.happy { filter: none; }
+/* покачивание под музыку (.bob) рисует Goo.step — не чаще 60 кадров/с */
+.zzz { position: absolute; left: 100%; top: -8px; margin-left: 4px; font-size: 9px; font-weight: 700; color: #8fc2ff; opacity: 0; }
+.eyes.sleep .zzz { opacity: 1; }
+.zzz span { position: absolute; opacity: 0; }
+/* всплывание «z z» рисует Eyes.zzz из Goo.step: CSS-анимация крутилась бы на частоте монитора */
