@@ -31,26 +31,22 @@
       const mid = FH / 2;
       g.font = '600 64px "Golos Text", "Segoe UI", sans-serif'; g.textBaseline = 'middle';
       if (!eyesOnly) {
-        // время
-        const d = new Date();
-        g.fillStyle = '#f2f3f7'; g.shadowBlur = 0;
-        g.fillText(`${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`, 92, mid + 2);
-        // погода: солнце + 9°
-        const sx = 812, sy = mid;
-        g.fillStyle = '#ffb43f'; g.shadowColor = 'rgba(255,180,63,.6)'; g.shadowBlur = 14;
-        g.beginPath(); g.arc(sx, sy, 15, 0, Math.PI * 2); g.fill();
-        for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; g.save(); g.translate(sx + Math.cos(a) * 26, sy + Math.sin(a) * 26); g.rotate(a); rr(-5, -2.5, 10, 5, 2); g.restore(); }
-        g.shadowBlur = 0; g.fillStyle = '#f2f3f7'; g.fillText('9°', 856, mid + 2);
+        // слева значок полки, справа счётчик — как капсула в покое
+        const tx = 96, ty = mid - 30, tw = 66, th = 60;
+        g.strokeStyle = '#f2f3f7'; g.lineWidth = 6.5; g.lineJoin = g.lineCap = 'round'; g.shadowBlur = 0;
+        g.beginPath(); if (g.roundRect) g.roundRect(tx, ty, tw, th, 16); else g.rect(tx, ty, tw, th); g.stroke();
+        g.beginPath(); g.moveTo(tx, mid + 4); g.lineTo(tx + 17, mid + 4); g.lineTo(tx + 23, mid + 15); g.lineTo(tx + 43, mid + 15); g.lineTo(tx + 49, mid + 4); g.lineTo(tx + tw, mid + 4); g.stroke();
+        g.fillStyle = '#f2f3f7'; g.textAlign = 'right'; g.fillText('4', 928, mid + 2); g.textAlign = 'left';
       }
       // глазки
-      const ox = look.x * 22, oy = look.y * 14, gap = 92, cx = 512, ew = 50, eh = 64 * blink;
+      const ox = look.x * 22, oy = look.y * 14, gap = 104, cx = 512, ew = 46, eh = 68 * blink;
       const st = STYLES[style].id;
       g.save();
       if (st === 'normal' || st === 'anger' || st === 'sad') {
-        g.fillStyle = '#fff'; g.shadowColor = 'rgba(255,255,255,.8)'; g.shadowBlur = 22;
+        g.fillStyle = '#fff'; g.shadowColor = 'rgba(120,190,255,.85)'; g.shadowBlur = 26;
         [-1, 1].forEach(s => {
           const x = cx + s * gap / 2 - ew / 2 + ox, y = mid - eh / 2 + oy;
-          rr(x, y, ew, Math.max(4, eh), 14);
+          g.beginPath(); g.ellipse(x + ew / 2, mid + oy, ew / 2, Math.max(2, eh / 2), 0, 0, Math.PI * 2); g.fill();
           if (st !== 'normal' && blink > .5) {   // срезаем косое веко
             g.save(); g.globalCompositeOperation = 'destination-out'; g.shadowBlur = 0; g.beginPath();
             const inner = st === 'anger' ? s < 0 : s > 0;
