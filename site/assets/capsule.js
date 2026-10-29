@@ -1,5 +1,6 @@
 /* Лицо капсулы (время, глазки, погода) в координатах 1024x288.
-   Одно и то же лицо рисуется на 3D-капсуле главной и на большой 2D-капсуле страницы глазок. */
+   Одно и то же лицо рисуется на 3D-капсуле главной, на большой 2D-капсуле страницы глазок
+   и (только глазки) на маленьких капсулах галереи. */
 (() => {
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const STYLES = [
@@ -8,9 +9,9 @@
   ];
   const FW = 1024, FH = 288;
 
-  function face(g) {
+  function face(g, eyesOnly) {
     const look = { x: 0, y: 0, tx: 0, ty: 0 };
-    let style = 0, blink = 1, nextBlink = performance.now() + 2500, scan = 0;
+    let style = 0, blink = 1, nextBlink = performance.now() + 1200 + Math.random() * 3000, scan = Math.random() * 6;
 
     const rr = (x, y, w, h, r) => { g.beginPath(); g.roundRect ? g.roundRect(x, y, w, h, r) : g.rect(x, y, w, h); g.fill(); };
     const heart = (cx, cy, s) => {
@@ -28,17 +29,19 @@
     const draw = () => {
       g.clearRect(0, 0, FW, FH);
       const mid = FH / 2;
-      // время
-      const d = new Date();
-      g.fillStyle = '#f2f3f7'; g.shadowBlur = 0;
       g.font = '600 64px "Golos Text", "Segoe UI", sans-serif'; g.textBaseline = 'middle';
-      g.fillText(`${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`, 92, mid + 2);
-      // погода: солнце + 9°
-      const sx = 812, sy = mid;
-      g.fillStyle = '#ffb43f'; g.shadowColor = 'rgba(255,180,63,.6)'; g.shadowBlur = 14;
-      g.beginPath(); g.arc(sx, sy, 15, 0, Math.PI * 2); g.fill();
-      for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; g.save(); g.translate(sx + Math.cos(a) * 26, sy + Math.sin(a) * 26); g.rotate(a); rr(-5, -2.5, 10, 5, 2); g.restore(); }
-      g.shadowBlur = 0; g.fillStyle = '#f2f3f7'; g.fillText('9°', 856, mid + 2);
+      if (!eyesOnly) {
+        // время
+        const d = new Date();
+        g.fillStyle = '#f2f3f7'; g.shadowBlur = 0;
+        g.fillText(`${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`, 92, mid + 2);
+        // погода: солнце + 9°
+        const sx = 812, sy = mid;
+        g.fillStyle = '#ffb43f'; g.shadowColor = 'rgba(255,180,63,.6)'; g.shadowBlur = 14;
+        g.beginPath(); g.arc(sx, sy, 15, 0, Math.PI * 2); g.fill();
+        for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; g.save(); g.translate(sx + Math.cos(a) * 26, sy + Math.sin(a) * 26); g.rotate(a); rr(-5, -2.5, 10, 5, 2); g.restore(); }
+        g.shadowBlur = 0; g.fillStyle = '#f2f3f7'; g.fillText('9°', 856, mid + 2);
+      }
       // глазки
       const ox = look.x * 22, oy = look.y * 14, gap = 92, cx = 512, ew = 50, eh = 64 * blink;
       const st = STYLES[style].id;
@@ -215,5 +218,32 @@
     loop();
   }
 
-  window.IsletCapsule = { STYLES, mount3D, mount2D };
+  /* ---------- маленькие капсулы: одни глазки, один общий цикл на всю группу ---------- */
+  const MW = 360, MH = 150;
+  function mountMinis({ host, tiles, cycle, onCycle }) {
+    const k = Math.min(2, Math.max(1, devicePixelRatio || 1));
+    const items = tiles.map(({ el, style }) => {
+      const c = document.createElement('canvas');
+      c.width = MW * k; c.height = MH * k;
+      c.setAttribute('aria-hidden', 'true');
+      el.appendChild(c);
+      const g = c.getContext('2d'); g.scale(k, k); g.translate(MW / 2 - FW / 2, MH / 2 - FH / 2);
+      const f = face(g, true); f.style = style || 0;
+      return { el, f };
+    });
+    addEventListener('pointermove', e => items.forEach(it => aim(it.f, it.el, e, .5)), { passive: true });
+    let last = performance.now();
+    const loop = visibleLoop(host, now => {
+      if (cycle && !reduce && now - last > cycle) {
+        last = now;
+        items.forEach(it => { it.f.style = it.f.style + 1; });
+        if (onCycle) onCycle(items[0].f.name);
+      }
+      items.forEach(it => { it.f.step(now); it.f.draw(); });
+    });
+    items.forEach(it => it.f.draw());
+    loop();
+  }
+
+  window.IsletCapsule = { STYLES, mount3D, mount2D, mountMinis };
 })();

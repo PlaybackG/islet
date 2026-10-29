@@ -66,6 +66,48 @@
     </div>
   </section>
 
+  <section class="section live">
+    <div class="wrap">
+      <div class="section-head live-head">
+        <span class="eyebrow"><i></i>Живой остров</span>
+        <h2>Сжимается. <span class="thin">Раскрывается. Подстраивается.</span></h2>
+        <p class="lede">Заиграла музыка, пошла загрузка, пришло сообщение: остров показывает главное и снова становится капсулой. Наведи на экран, и он замрёт.</p>
+      </div>
+      <div class="desk lift" id="desk">
+        <div class="desk-screen" id="deskScreen">
+          <div class="isl" id="isl" data-state="idle">
+            <div class="isl-v v-idle">
+              <span class="isl-time">14:32</span>
+              <span class="isl-eyes" aria-hidden="true"><b></b><b></b></span>
+              <span class="isl-wx"><i></i>+9°</span>
+            </div>
+            <div class="isl-v v-music">
+              <span class="isl-art" aria-hidden="true"></span>
+              <span class="isl-txt"><b>Огни трассы</b><span>Север · 2:14 из 3:40</span><span class="isl-bar"><i></i></span></span>
+              <span class="isl-eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+            </div>
+            <div class="isl-v v-dl">
+              <span class="isl-ring" id="islRing"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v10m0 0-4-4m4 4 4-4M6 19h12"/></svg></span>
+              <span class="isl-txt"><b>IsletSetup.exe</b><span id="islLine">64% · 90 МБ из 140 МБ</span></span>
+            </div>
+            <div class="isl-v v-msg">
+              <span class="isl-ava" aria-hidden="true">М</span>
+              <span class="isl-txt"><b>Миша <em>сейчас</em></b><span>Скинь ссылку на остров, хочу себе</span></span>
+            </div>
+          </div>
+          <span class="desk-win w1" aria-hidden="true"></span><span class="desk-win w2" aria-hidden="true"></span>
+        </div>
+        <div class="isl-tabs" id="islTabs" role="group" aria-label="Состояние острова">
+          <button type="button" aria-pressed="true">покой</button><button type="button" aria-pressed="false">музыка</button><button type="button" aria-pressed="false">загрузка</button><button type="button" aria-pressed="false">сообщение</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="marq" id="marq" aria-hidden="true">
+    <div class="marq-track"><span>Музыка</span><i></i><span class="o">Буфер обмена</span><i></i><span>Полка</span><i></i><span class="o">Уведомления</span><i></i><span>Текст</span><i></i><span class="o">Чат с ИИ</span><i></i><span>Заметки</span><i></i><span class="o">Погода</span><i></i><span>Управление</span><i></i><span class="o">Загрузки</span><i></i></div>
+  </div>
+
   <section class="section">
     <div class="wrap">
       <div class="section-head">
@@ -86,7 +128,7 @@
             <div class="go"><h3>Глазки</h3><span class="knob"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></span></div>
             <p>Моргают, следят за курсором и меняют настроение. Поиграй с ними прямо на сайте.</p>
           </div>
-          <div class="pic"><div class="crop"><img src="assets/eyes.png" alt="Стили глазок на капсуле" width="1440" height="720" loading="lazy"></div></div>
+          <div class="pic"><div class="eye-demo" id="eyeDemo"><span class="mini" id="eyeDemoPill"></span><span class="eye-demo-name">сейчас: <b id="eyeDemoName">обычные</b></span></div></div>
         </div></a>
 
         <a class="pcard p-dl shell lift" href="download.html"><div class="core">

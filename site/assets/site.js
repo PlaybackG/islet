@@ -120,8 +120,134 @@ document.querySelectorAll('[data-link]').forEach(a => {
 /* ---------- капсулы ---------- */
 (() => {
   if (!window.IsletCapsule) return;
-  const name = $('eyeName'), say = n => { if (name) name.textContent = n; };
+  const tiles = [...document.querySelectorAll('.eye-tile[data-style]')];
+  const name = $('eyeName'), say = n => {
+    if (name) name.textContent = n;
+    const i = IsletCapsule.STYLES.findIndex(s => s.name === n);
+    tiles.forEach(t => t.setAttribute('aria-pressed', +t.dataset.style === i));
+  };
   if ($('cap')) IsletCapsule.mount3D({ canvas: $('cap'), host: $('stage3d'), fallback: $('capFallback'), onStyle: say });
-  const play = $('playCap');
-  if (play) IsletCapsule.mount2D({ host: play, buttons: [...document.querySelectorAll('#styles button')], onStyle: say });
+  const play = $('playCap'), btns = [...document.querySelectorAll('#styles button')];
+  if (play) IsletCapsule.mount2D({ host: play, buttons: btns, onStyle: say });
+  // галерея стилей: нажатие надевает стиль на большую капсулу
+  if ($('eyeGrid')) {
+    IsletCapsule.mountMinis({ host: $('eyeGrid'), tiles: tiles.map(t => ({ el: t.querySelector('.mini'), style: +t.dataset.style })) });
+    tiles.forEach(t => t.addEventListener('click', () => {
+      if (btns[+t.dataset.style]) btns[+t.dataset.style].click();
+      if (play) play.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
+    }));
+  }
+  // карточка на главной: одна капсула сама перебирает стили
+  if ($('eyeDemo')) IsletCapsule.mountMinis({ host: $('eyeDemo'), tiles: [{ el: $('eyeDemoPill'), style: 0 }], cycle: 2200, onCycle: n => { $('eyeDemoName').textContent = n; } });
+})();
+
+/* ---------- живой остров: сам меняет занятия, пока его видно; наведение замораживает ---------- */
+(() => {
+  const desk = $('desk'), isl = $('isl');
+  if (!desk || !isl) return;
+  const order = ['idle', 'music', 'dl', 'msg'];
+  const tabs = [...$('islTabs').children], ring = $('islRing'), line = $('islLine');
+  let cur = 0, timer, raf, seen = false, held = false;
+  const dl = () => {
+    cancelAnimationFrame(raf);
+    const t0 = performance.now(), dur = reduce ? 1 : 2600;
+    const step = now => {
+      const k = Math.min(1, (now - t0) / dur), p = 18 + 80 * (1 - Math.pow(1 - k, 2));
+      ring.style.setProperty('--p', p.toFixed(1));
+      line.textContent = `${Math.floor(p)}% · ${Math.round(140 * p / 100)} МБ из 140 МБ`;
+      if (k < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+  };
+  const set = i => {
+    cur = i; isl.dataset.state = order[i];
+    tabs.forEach((b, k) => b.setAttribute('aria-pressed', k === i));
+    if (order[i] === 'dl') dl(); else cancelAnimationFrame(raf);
+  };
+  const tick = () => {
+    clearTimeout(timer);
+    if (reduce || !seen || held || document.hidden) return;
+    timer = setTimeout(() => { set((cur + 1) % order.length); tick(); }, 3200);
+  };
+  tabs.forEach((b, i) => b.addEventListener('click', () => { set(i); tick(); }));
+  desk.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') { held = true; tick(); } });
+  desk.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') { held = false; tick(); } });
+  document.addEventListener('visibilitychange', tick);
+  if (!('IntersectionObserver' in window)) { seen = true; desk.classList.add('on'); return tick(); }
+  new IntersectionObserver(es => { seen = es[0].isIntersecting; desk.classList.toggle('on', seen); tick(); }, { threshold: .35 }).observe(desk);
+})();
+
+/* ---------- бегущая строка: вторая копия для бесшовного круга, едет только на экране ---------- */
+(() => {
+  const m = $('marq');
+  if (!m) return;
+  const t = m.firstElementChild;
+  t.innerHTML += t.innerHTML;
+  if (!('IntersectionObserver' in window)) return m.classList.add('on');
+  new IntersectionObserver(es => m.classList.toggle('on', es[0].isIntersecting)).observe(m);
+})();
+
+/* ---------- фон: три медленных световых пятна ---------- */
+(() => {
+  const a = document.createElement('div');
+  a.className = 'aurora'; a.setAttribute('aria-hidden', 'true'); a.innerHTML = '<i></i><i></i><i></i>';
+  document.body.prepend(a);
+  document.documentElement.classList.add('has-aurora');
+})();
+
+/* ---------- курсор: свет на карточках, магнитные кнопки, лёгкий наклон ---------- */
+(() => {
+  if (!matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+  document.addEventListener('pointermove', e => {
+    const el = e.target.closest && e.target.closest('.shell, .eye-tile');
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    el.style.setProperty('--mx', e.clientX - r.left + 'px');
+    el.style.setProperty('--my', e.clientY - r.top + 'px');
+  }, { passive: true });
+  if (reduce) return;
+  document.querySelectorAll('.btn').forEach(b => {
+    b.addEventListener('pointermove', e => {
+      const r = b.getBoundingClientRect();
+      b.style.translate = `${(e.clientX - r.left - r.width / 2) * .18}px ${(e.clientY - r.top - r.height / 2) * .3}px`;
+    });
+    b.addEventListener('pointerleave', () => { b.style.translate = ''; });
+  });
+  document.querySelectorAll('.desk-screen, .gal .shell').forEach(el => {
+    el.addEventListener('pointermove', e => {
+      const r = el.getBoundingClientRect();
+      el.style.setProperty('--ry', ((e.clientX - r.left) / r.width - .5) * 6 + 'deg');
+      el.style.setProperty('--rx', (.5 - (e.clientY - r.top) / r.height) * 5 + 'deg');
+    });
+    el.addEventListener('pointerleave', () => { el.style.removeProperty('--rx'); el.style.removeProperty('--ry'); });
+  });
+})();
+
+/* ---------- заголовки секций поднимаются по словам ---------- */
+(() => {
+  if (reduce || !('IntersectionObserver' in window)) return;
+  const hs = [...document.querySelectorAll('.section-head h2, .final h2')].filter(h => h.getBoundingClientRect().top > innerHeight * .9);
+  const io = new IntersectionObserver(es => es.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+  }), { rootMargin: '0px 0px -10% 0px' });
+  hs.forEach(h => {
+    h.setAttribute('aria-label', h.textContent.replace(/\s+/g, ' ').trim());
+    let n = 0;
+    // делим только по обычным пробелам: неразрывный держит пары слов вместе
+    const walk = node => [...node.childNodes].forEach(c => {
+      if (c.nodeType === 1) return walk(c);
+      if (c.nodeType !== 3) return;
+      const frag = document.createDocumentFragment();
+      c.textContent.split(/([ \t\n\r]+)/).forEach(part => {
+        if (!part) return;
+        if (/^[ \t\n\r]+$/.test(part)) return frag.append(part);
+        const w = document.createElement('span'), i = document.createElement('span');
+        w.className = 'wd'; w.setAttribute('aria-hidden', 'true');
+        i.textContent = part; i.style.transitionDelay = n++ * 60 + 'ms';
+        w.append(i); frag.append(w);
+      });
+      c.replaceWith(frag);
+    });
+    walk(h); h.classList.add('kin'); io.observe(h);
+  });
 })();
