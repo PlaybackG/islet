@@ -29,6 +29,7 @@ const GetClipboardData = user32.func('HANDLE __stdcall GetClipboardData(uint32_t
 const GlobalLock = kernel32.func('void * __stdcall GlobalLock(HANDLE h)');
 const GlobalUnlock = kernel32.func('bool __stdcall GlobalUnlock(HANDLE h)');
 const GetWindowRect =user32.func('bool __stdcall GetWindowRect(HWND hWnd, _Out_ RECT *rect)');
+const IsZoomed = user32.func('bool __stdcall IsZoomed(HWND hWnd)');
 const GetClassNameW = user32.func('int __stdcall GetClassNameW(HWND hWnd, _Out_ uint16_t *buf, int max)');
 const OpenProcess = kernel32.func('HANDLE __stdcall OpenProcess(DWORD access, bool inherit, DWORD pid)');
 const CloseHandle = kernel32.func('bool __stdcall CloseHandle(HANDLE h)');
@@ -148,6 +149,8 @@ function windowRect(hwnd) {
   return r;
 }
 
+const isMaximized = (hwnd) => !!hwnd && IsZoomed(hwnd);
+
 function className(hwnd) {
   const buf = new Uint16Array(256);
   const n = GetClassNameW(hwnd, buf, 256);
@@ -261,6 +264,6 @@ function setRegDword(sub, name, v) {
 
 module.exports = {
   foreground, focusWindow, sendCtrlV, capsLock, keyboardLayout,
-  clipboardSeq, clipboardIsPrivate, clipboardHasFiles, windowRect, className, processName, handleOf,
+  clipboardSeq, clipboardIsPrivate, clipboardHasFiles, windowRect, isMaximized, className, processName, handleOf,
   idleMs, battery, mouseDown, audioPeak, fileDragging, regDword, setRegDword,
 };

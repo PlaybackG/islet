@@ -346,6 +346,10 @@ function isFullscreen(hwnd) {
   if (!r || !displayPhys) return false;
   const d = displayPhys;
   if (r.left > d.x || r.top > d.y || r.right < d.x + d.width || r.bottom < d.y + d.height) return false;
+  // Развёрнутое окно при автоскрытой панели задач тоже накрывает экран, но рамкой вылезает за край.
+  // Это обычный браузер, а не игра: настоящий полный экран встаёт ровно по монитору.
+  const exact = r.left === d.x && r.top === d.y && r.right === d.x + d.width && r.bottom === d.y + d.height;
+  if (!exact && native.isMaximized(hwnd)) return false;
   return !DESKTOP_CLASSES.has(native.className(hwnd));
 }
 
