@@ -27,6 +27,7 @@ body {
   -webkit-font-smoothing: antialiased; overflow-x: clip;
 }
 img { max-width: 100%; display: block; }
+[hidden] { display: none !important; }
 a { color: inherit; }
 ::selection { background: var(--peri); color: var(--on-light); }
 :focus-visible { outline: 2px solid var(--peri); outline-offset: 3px; border-radius: 8px; }
@@ -148,13 +149,13 @@ code, kbd { font-family: var(--mono); font-size: .88em; }
 .crumb a:hover { color: var(--text); }
 .phead h1 { max-width: 13ch; }
 .section { padding-block: 104px; }
-.section-head { display: grid; gap: 20px; margin-bottom: 52px; }
+.section-head { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; margin-bottom: 52px; align-content: start; justify-items: start; }
 .stack { display: grid; gap: 40px; }
 
 /* ---------- hero (home) ---------- */
 .hero { padding-block: calc(env(safe-area-inset-top, 0px) + 120px) 40px; }
 .hero-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 32px; align-items: center; }
-.hero-copy { display: grid; gap: 28px; min-width: 0; }
+.hero-copy { display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; min-width: 0; }
 .hero h1 .w { display: inline-block; }
 .hero h1 em { text-shadow: 0 0 40px rgba(154, 166, 255, .45); }
 
