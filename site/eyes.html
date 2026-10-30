@@ -5,19 +5,29 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Глазки · Islet</title>
 <meta name="description" content="Глазки на капсуле Islet: моргают, следят за курсором и меняют стиль. Поиграй с ними на сайте.">
+<meta property="og:title" content="Глазки Islet">
+<meta property="og:description" content="Моргают, следят за курсором и меняют стиль. Поиграй с ними на сайте.">
+<meta property="og:image" content="https://playbackg.github.io/islet/assets/eyes.png">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400..800&family=JetBrains+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="assets/site.css?v=27">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sofia+Sans+Extra+Condensed:wght@800&family=Golos+Text:wght@400..700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/site.css?v=29">
 </head>
 <body>
+<a class="skip" href="#main">К содержимому</a>
 
-<nav class="nav" id="nav" aria-label="Навигация">
+<div class="top">
+  <div><a href="index.html">Главная</a><a href="features.html">Возможности</a></div>
+  <div><a href="eyes.html" aria-current="page">Глазки</a><a href="download.html">Скачать</a></div>
+</div>
+
+<nav class="nav nav-still" id="nav" aria-label="Навигация">
   <div class="nav-bar">
     <a class="nav-word" href="index.html">islet</a>
     <span class="mini-eyes" aria-hidden="true"><b></b><b></b></span>
     <a class="nav-dl" href="download.html" aria-label="Скачать Islet">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12m0 0-5-5m5 5 5-5M5 20h14"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 11l5 5l5 -5"/><path d="M12 4l0 12"/></svg>
     </a>
   </div>
   <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="navLinks" aria-label="Меню"></button>
@@ -26,77 +36,68 @@
   </div>
 </nav>
 
-<main>
-  <header class="phead">
-    <div class="wrap">
-      <nav class="crumb" aria-label="Путь"><a href="index.html">islet</a><span>/</span><span>глазки</span></nav>
-      <h1>Остров <span class="thin">смотрит</span> на&nbsp;тебя</h1>
-      <p class="lede">В покое капсула не пустая. Глазки моргают, следят за курсором и меняют настроение. Стиль выбираешь в галерее настроек, а здесь можно попробовать заранее.</p>
+<main id="main">
+  <section class="play">
+    <div class="play-cap" id="playCap" role="img" aria-label="Капсула Islet с глазками, которые следят за курсором"></div>
+  </section>
+
+  <header class="phead phead-tight">
+    <div class="wrap eyes-row">
+      <div>
+        <h1 class="mega" data-kin>Остров смотрит на&nbsp;тебя</h1>
+        <p class="lede rv">В покое капсула не пустая. Глазки моргают, следят за курсором и меняют настроение. Стиль выбираешь в галерее настроек, а здесь можно попробовать заранее.</p>
+      </div>
+      <div class="rv">
+        <div class="chips" id="styles" role="group" aria-label="Стиль глазок">
+          <button type="button">обычные</button><button type="button">злые</button><button type="button">грустные</button><button type="button">кот</button><button type="button">T-800</button><button type="button">сердечки</button><button type="button">сканер</button>
+        </div>
+        <p class="play-meta" aria-live="polite">Сейчас: <b id="eyeName">обычные</b></p>
+      </div>
     </div>
   </header>
 
-  <section>
-    <div class="wrap play">
-      <div class="play-cap" id="playCap" role="img" aria-label="Капсула Islet с глазками, которые следят за курсором"></div>
-      <div class="chips" id="styles" role="group" aria-label="Стиль глазок">
-        <button type="button">обычные</button><button type="button">злые</button><button type="button">грустные</button><button type="button">кот</button><button type="button">T-800</button><button type="button">сердечки</button><button type="button">сканер</button>
-      </div>
-      <p class="play-meta" aria-live="polite">нажми на капсулу или выбери стиль · сейчас: <b id="eyeName">обычные</b></p>
-    </div>
-  </section>
-
-  <section class="section">
+  <section class="chapter">
     <div class="wrap">
-      <div class="section-head">
-        <span class="eyebrow"><i></i>Стили</span>
-        <h2>Семь <span class="thin">характеров</span></h2>
-        <p class="lede">Каждая капсула живая: моргает и смотрит на курсор. Нажми на любую, и большая капсула наверху наденет этот стиль.</p>
-      </div>
+      <h2 class="h2" data-kin>Семь характеров</h2>
+      <p class="lede rv">Каждая капсула живая: моргает и смотрит на курсор. Нажми на любую, и большая капсула наверху наденет этот стиль.</p>
       <div class="eye-grid" id="eyeGrid">
-        <button type="button" class="eye-tile lift" data-style="0" aria-pressed="true"><span class="mini"></span><span class="lbl"><i>01</i>обычные</span></button>
-        <button type="button" class="eye-tile lift" data-style="1" aria-pressed="false"><span class="mini"></span><span class="lbl"><i>02</i>злые</span></button>
-        <button type="button" class="eye-tile lift" data-style="2" aria-pressed="false"><span class="mini"></span><span class="lbl"><i>03</i>грустные</span></button>
-        <button type="button" class="eye-tile lift" data-style="3" aria-pressed="false"><span class="mini"></span><span class="lbl"><i>04</i>кот</span></button>
-        <button type="button" class="eye-tile lift" data-style="4" aria-pressed="false"><span class="mini"></span><span class="lbl"><i>05</i>T-800</span></button>
-        <button type="button" class="eye-tile lift" data-style="5" aria-pressed="false"><span class="mini"></span><span class="lbl"><i>06</i>сердечки</span></button>
-        <button type="button" class="eye-tile lift" data-style="6" aria-pressed="false"><span class="mini"></span><span class="lbl"><i>07</i>сканер</span></button>
-        <div class="eye-tile eye-more lift"><p>В приложении стиль меняется в&nbsp;<b>Настройки&nbsp;→ Глазки</b>. Там же моргание и&nbsp;слежение за&nbsp;курсором.</p></div>
+        <button type="button" class="eye-tile t5 rv" data-style="0" aria-pressed="true"><span class="mini"></span><span class="lbl">обычные</span></button>
+        <button type="button" class="eye-tile t3 rv" data-style="1" aria-pressed="false"><span class="mini"></span><span class="lbl">злые</span></button>
+        <button type="button" class="eye-tile rv" data-style="2" aria-pressed="false"><span class="mini"></span><span class="lbl">грустные</span></button>
+        <button type="button" class="eye-tile rv" data-style="3" aria-pressed="false"><span class="mini"></span><span class="lbl">кот</span></button>
+        <button type="button" class="eye-tile t3 rv" data-style="4" aria-pressed="false"><span class="mini"></span><span class="lbl">T-800</span></button>
+        <button type="button" class="eye-tile t5 rv" data-style="5" aria-pressed="false"><span class="mini"></span><span class="lbl">сердечки</span></button>
+        <button type="button" class="eye-tile rv" data-style="6" aria-pressed="false"><span class="mini"></span><span class="lbl">сканер</span></button>
+        <p class="eye-more rv">В приложении стиль меняется в&nbsp;<b>Настройки&nbsp;→ Глазки</b>. Там же моргание и&nbsp;слежение за&nbsp;курсором.</p>
       </div>
     </div>
   </section>
 
-  <section class="section">
+  <section class="chapter">
     <div class="wrap">
-      <div class="section-head">
-        <span class="eyebrow"><i></i>В приложении</span>
-        <h2>Так это <span class="thin">выглядит в&nbsp;настройках</span></h2>
-      </div>
+      <h2 class="h2" data-kin>Так это выглядит в&nbsp;настройках</h2>
       <div class="gal" id="gal">
-        <figure class="g-set lift"><div class="shell"><div class="core"><img src="assets/eye-settings.png" alt="Настройки глазок в Islet" width="900" height="760" loading="lazy"></div></div><figcaption>Стиль, моргание, слежение</figcaption></figure>
-        <figure class="g-p lift"><div class="shell"><div class="core"><img src="assets/gallery-1.png" alt="Галерея стилей глазок, первая страница" width="710" height="1000" loading="lazy"></div></div><figcaption>Галерея, 1</figcaption></figure>
-        <figure class="g-p lift"><div class="shell"><div class="core"><img src="assets/gallery-2.png" alt="Галерея стилей глазок, вторая страница" width="710" height="1000" loading="lazy"></div></div><figcaption>Галерея, 2</figcaption></figure>
-        <figure class="g-p lift"><div class="shell"><div class="core"><img src="assets/gallery-3.png" alt="Галерея стилей глазок, третья страница" width="710" height="1000" loading="lazy"></div></div><figcaption>Галерея, 3</figcaption></figure>
+        <figure class="rv"><div class="im"><img src="assets/eye-settings.png" alt="Настройки глазок в Islet" width="900" height="760" loading="lazy"></div><figcaption>Стиль, моргание, слежение</figcaption></figure>
+        <figure class="rv"><div class="im"><img src="assets/gallery-1.png" alt="Галерея стилей глазок, первая страница" width="710" height="1000" loading="lazy"></div><figcaption>Галерея, 1</figcaption></figure>
+        <figure class="rv"><div class="im"><img src="assets/gallery-2.png" alt="Галерея стилей глазок, вторая страница" width="710" height="1000" loading="lazy"></div><figcaption>Галерея, 2</figcaption></figure>
+        <figure class="rv"><div class="im"><img src="assets/gallery-3.png" alt="Галерея стилей глазок, третья страница" width="710" height="1000" loading="lazy"></div><figcaption>Галерея, 3</figcaption></figure>
       </div>
     </div>
   </section>
-
 </main>
 
 <footer class="foot">
   <div class="wrap">
-    <div class="foot-grid">
-      <div class="foot-brand"><span class="foot-word">islet</span><p>Динамический остров для Windows 10 и 11. Бесплатно, MIT.</p></div>
-      <div class="foot-col"><b>Страницы</b><a href="index.html">Главная</a><a href="features.html">Возможности</a><a href="eyes.html">Глазки</a><a href="download.html">Скачать</a></div>
-      <div class="foot-col"><b>Проект</b><a data-link="github" href="https://github.com/PlaybackG/islet" target="_blank" rel="noopener">GitHub</a><a href="https://github.com/PlaybackG/islet/blob/main/LICENSE" target="_blank" rel="noopener">Лицензия MIT</a><a href="https://rama2555.github.io/nusa" target="_blank" rel="noopener">Глазки: nusa</a></div>
-    </div>
-    <div class="foot-big" aria-hidden="true">islet</div>
-    <div class="foot-base"><span>Идея и поведение по мотивам Island</span><span>playbackg.github.io/islet</span></div>
+    <a data-link="github" href="https://github.com/PlaybackG/islet" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://github.com/PlaybackG/islet/blob/main/LICENSE" target="_blank" rel="noopener">Лицензия MIT</a>
+    <a href="https://rama2555.github.io/nusa" target="_blank" rel="noopener">Глазки: nusa</a>
+    <span>Идея и поведение по мотивам Island</span>
   </div>
 </footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-<script src="assets/capsule.js?v=27"></script>
-<script src="assets/site.js?v=27"></script>
+<script src="assets/capsule.js?v=29"></script>
+<script src="assets/site.js?v=29"></script>
 </body>
 </html>

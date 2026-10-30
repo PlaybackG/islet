@@ -31,7 +31,7 @@
       const mid = FH / 2;
       g.font = '600 64px "Golos Text", "Segoe UI", sans-serif'; g.textBaseline = 'middle';
       if (!eyesOnly) {
-        // слева значок полки, справа счётчик — как капсула в покое
+        // слева значок полки, справа счётчик, как капсула в покое
         const tx = 96, ty = mid - 30, tw = 66, th = 60;
         g.strokeStyle = '#f2f3f7'; g.lineWidth = 6.5; g.lineJoin = g.lineCap = 'round'; g.shadowBlur = 0;
         g.beginPath(); if (g.roundRect) g.roundRect(tx, ty, tw, th, 16); else g.rect(tx, ty, tw, th); g.stroke();
@@ -43,7 +43,7 @@
       const st = STYLES[style].id;
       g.save();
       if (st === 'normal' || st === 'anger' || st === 'sad') {
-        g.fillStyle = '#fff'; g.shadowColor = 'rgba(120,190,255,.85)'; g.shadowBlur = 26;
+        g.fillStyle = '#fff'; g.shadowColor = 'rgba(255,255,255,.35)'; g.shadowBlur = 14;
         [-1, 1].forEach(s => {
           const x = cx + s * gap / 2 - ew / 2 + ox, y = mid - eh / 2 + oy;
           g.beginPath(); g.ellipse(x + ew / 2, mid + oy, ew / 2, Math.max(2, eh / 2), 0, 0, Math.PI * 2); g.fill();
@@ -130,9 +130,9 @@
     env.add(new THREE.Mesh(new THREE.SphereGeometry(20, 32, 16), new THREE.MeshBasicMaterial({ color: 0x050608, side: THREE.BackSide })));
     const box = (c, w, h, x, y, z) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: c, side: THREE.DoubleSide })); m.position.set(x, y, z); m.lookAt(0, 0, 0); env.add(m); };
     box(0xffffff, 14, 2.2, 0, 9, 6);
-    box(0x8c86ff, 6, 10, -11, 1, 3);
-    box(0xffb43f, 4, 8, 11, -2, 4);
-    box(0x9aa6ff, 18, 1.2, 0, -8, 5);
+    box(0xcfd2d6, 6, 10, -11, 1, 3);
+    box(0xe6e7ea, 4, 8, 11, -2, 4);
+    box(0x9a9da3, 18, 1.2, 0, -8, 5);
     const pmrem = new THREE.PMREMGenerator(renderer);
     scene.environment = pmrem.fromScene(env, .02).texture;
 
@@ -189,6 +189,7 @@
     if (document.fonts) document.fonts.ready.then(() => frame(performance.now()));
     loop();
     if (window.gsap && !reduce) gsap.from(group.rotation, { y: -1.4, x: .6, duration: 1.8, ease: 'expo.out' });
+    return { set(i) { f.style = i; if (onStyle) onStyle(f.name); } };
   }
 
   /* ---------- плоская капсула (страница глазок) ---------- */

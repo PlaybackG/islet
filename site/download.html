@@ -5,19 +5,29 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Скачать · Islet</title>
 <meta name="description" content="Скачать Islet для Windows 10 и 11: установщик, три шага и ответы на частые вопросы.">
+<meta property="og:title" content="Скачать Islet">
+<meta property="og:description" content="Установщик для Windows 10 и 11, три шага и ответы на частые вопросы.">
+<meta property="og:image" content="https://playbackg.github.io/islet/assets/home.png">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400..800&family=JetBrains+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="assets/site.css?v=27">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sofia+Sans+Extra+Condensed:wght@800&family=Golos+Text:wght@400..700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/site.css?v=29">
 </head>
 <body>
+<a class="skip" href="#main">К содержимому</a>
+
+<div class="top">
+  <div><a href="index.html">Главная</a><a href="features.html">Возможности</a></div>
+  <div><a href="eyes.html">Глазки</a><a href="download.html" aria-current="page">Скачать</a></div>
+</div>
 
 <nav class="nav" id="nav" aria-label="Навигация">
   <div class="nav-bar">
     <a class="nav-word" href="index.html">islet</a>
     <span class="mini-eyes" aria-hidden="true"><b></b><b></b></span>
     <a class="nav-dl" href="download.html" aria-label="Скачать Islet">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12m0 0-5-5m5 5 5-5M5 20h14"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 11l5 5l5 -5"/><path d="M12 4l0 12"/></svg>
     </a>
   </div>
   <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="navLinks" aria-label="Меню"></button>
@@ -26,101 +36,76 @@
   </div>
 </nav>
 
-<main>
+<main id="main">
   <header class="phead">
-    <div class="wrap">
-      <nav class="crumb" aria-label="Путь"><a href="index.html">islet</a><span>/</span><span>скачать</span></nav>
-      <h1>Скачать <span class="thin">Islet</span></h1>
-    </div>
-  </header>
-
-  <section>
-    <div class="wrap">
-      <div class="shell dl-hero lift"><div class="core">
-        <span class="app-ico" aria-hidden="true"><span class="ae"><b></b><b></b></span></span>
-        <div class="dl-name">
-          <span class="eyebrow"><i></i>Windows 10 и 11</span>
-          <h2>IsletSetup.exe</h2>
-          <p>около 140 МБ · версия 0.1.0 · без прав администратора</p>
-        </div>
-        <div class="cta-row">
-          <a class="btn btn-main" data-link="download" href="https://github.com/PlaybackG/islet/releases/latest/download/IsletSetup.exe">Скачать
-            <span class="knob"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12m0 0-5-5m5 5 5-5M5 20h14"/></svg></span>
+    <div class="wrap dl-head">
+      <div>
+        <h1 class="mega" data-kin>Скачать Islet</h1>
+        <div class="do rv">
+          <a class="btn" data-link="download" href="https://github.com/PlaybackG/islet/releases/latest/download/IsletSetup.exe">Скачать
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 11l5 5l5 -5"/><path d="M12 4l0 12"/></svg>
           </a>
-          <a class="btn btn-ghost" data-link="github" href="https://github.com/PlaybackG/islet" target="_blank" rel="noopener">GitHub
-            <span class="knob"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></span>
-          </a>
+          <a class="tlink" data-link="github" href="https://github.com/PlaybackG/islet" target="_blank" rel="noopener">GitHub</a>
           <p class="phone-hint">Islet для Windows. Открой эту страницу на компьютере и скачай там.</p>
         </div>
-      </div></div>
-      <dl class="spec lift">
+      </div>
+      <dl class="spec rv">
+        <div><dt>файл</dt><dd>IsletSetup.exe</dd></div>
         <div><dt>система</dt><dd>Windows 10 и 11</dd></div>
         <div><dt>размер</dt><dd>около 140 МБ</dd></div>
         <div><dt>версия</dt><dd>0.1.0</dd></div>
         <div><dt>цена</dt><dd>бесплатно, MIT</dd></div>
+        <div><dt>права</dt><dd>без прав администратора</dd></div>
       </dl>
     </div>
-  </section>
+  </header>
 
-  <section class="section">
-    <div class="wrap">
-      <div class="section-head">
-        <span class="eyebrow"><i></i>Установка</span>
-        <h2>Три шага</h2>
-      </div>
-      <ol class="steps">
-        <li class="lift"><b>Скачай</b><span>Нажми «Скачать». Файл IsletSetup.exe весит около 140 МБ.</span></li>
-        <li class="lift"><b>Запусти</b><span>Windows SmartScreen может предупредить о неизвестном издателе. Нажми <kbd>Подробнее</kbd>, потом <kbd>Выполнить в любом случае</kbd>.</span></li>
-        <li class="lift"><b>Готово</b><span>Установка идёт сама, без вопросов. Остров появится сверху экрана и будет запускаться вместе с Windows.</span></li>
+  <section class="chapter">
+    <div class="wrap side">
+      <h2 class="h2" data-kin>Три шага</h2>
+      <ol class="side-list">
+        <li class="rv"><b>Скачай</b><span>Нажми «Скачать». Файл IsletSetup.exe весит около 140 МБ.</span></li>
+        <li class="rv"><b>Запусти</b><span>Windows SmartScreen может предупредить о неизвестном издателе. Нажми <kbd>Подробнее</kbd>, потом <kbd>Выполнить в любом случае</kbd>.</span></li>
+        <li class="rv"><b>Готово</b><span>Установка идёт сама, без вопросов. Остров появится сверху экрана и будет запускаться вместе с Windows.</span></li>
       </ol>
     </div>
   </section>
 
-  <section class="section">
+  <section class="chapter">
     <div class="wrap">
-      <div class="section-head">
-        <span class="eyebrow"><i></i>FAQ</span>
-        <h2>Вопросы</h2>
-      </div>
+      <h2 class="h2" data-kin>Вопросы</h2>
       <div class="faq">
-        <details><summary>Это правда бесплатно?<i></i></summary><div class="faq-a"><p>Да. Без подписок, пробного периода и рекламы. Код открыт под лицензией MIT.</p></div></details>
-        <details><summary>Где хранятся ключи для ИИ?<i></i></summary><div class="faq-a"><p>Ключи для чата с ИИ и распознавания речи вводятся в настройках и лежат только у тебя, в папке <code>%APPDATA%\Islet</code>. В установщике и в репозитории ключей нет.</p></div></details>
-        <details><summary>Покажет ли загрузку из моего браузера?<i></i></summary><div class="faq-a"><p>Да, из любого. Chrome, Edge, Яндекс Браузер, Brave, Vivaldi и Opera дают процент. Firefox и Zen показывают размер и скорость, а кольцо крутится, пока файл качается.</p></div></details>
-        <details><summary>Не будет мешать в играх?<i></i></summary><div class="faq-a"><p>Остров прячется, когда игра или видео идут на весь экран, и возвращается после. За обычными развёрнутыми окнами он остаётся на месте.</p></div></details>
-        <details><summary>Как удалить?<i></i></summary><div class="faq-a"><p>Параметры → Приложения → Установленные приложения → Islet → Удалить.</p></div></details>
+        <article class="rv"><h3>Это правда бесплатно?</h3><p>Да. Без подписок, пробного периода и рекламы. Код открыт под лицензией MIT.</p></article>
+        <article class="rv"><h3>Где хранятся ключи для ИИ?</h3><p>Ключи для чата с ИИ и распознавания речи вводятся в настройках и лежат только у тебя, в папке <code>%APPDATA%\Islet</code>. В установщике и в репозитории ключей нет.</p></article>
+        <article class="rv"><h3>Покажет ли загрузку из моего браузера?</h3><p>Да, из любого. Chrome, Edge, Яндекс Браузер, Brave, Vivaldi и Opera дают процент. Firefox и Zen показывают размер и скорость, а кольцо крутится, пока файл качается.</p></article>
+        <article class="rv"><h3>Не будет мешать в играх?</h3><p>Остров прячется, когда игра или видео идут на весь экран, и возвращается после. За обычными развёрнутыми окнами он остаётся на месте.</p></article>
+        <article class="rv"><h3>Как удалить?</h3><p>Параметры → Приложения → Установленные приложения → Islet → Удалить.</p></article>
       </div>
     </div>
   </section>
 
-  <section class="section">
-    <div class="wrap split">
-      <div class="split-txt">
-        <span class="eyebrow"><i></i>Исходники</span>
-        <h2>Собрать <span class="thin">самому</span></h2>
-        <p class="lede">Нужен Node.js 20 или новее.</p>
+  <section class="chapter">
+    <div class="wrap side build">
+      <div>
+        <h2 class="h2" data-kin>Собрать самому</h2>
+        <p class="lede rv">Нужен Node.js 20 или новее.</p>
       </div>
-      <div class="shell term-win lift"><div class="core">
-        <div class="term-bar" aria-hidden="true"><i></i><i></i><i></i></div>
-<pre class="term"><span class="c"># склонировать и запустить</span><span><span class="p">$</span>git clone https://github.com/PlaybackG/islet</span><span><span class="p">$</span>cd islet/islet</span><span><span class="p">$</span>npm install</span><span><span class="p">$</span>npx electron .<i class="caret"></i></span></pre>
-      </div></div>
+      <pre class="term rv"><span>git clone https://github.com/PlaybackG/islet</span><span>cd islet/islet</span><span>npm install</span><span>npx electron .</span></pre>
     </div>
   </section>
 </main>
 
 <footer class="foot">
   <div class="wrap">
-    <div class="foot-grid">
-      <div class="foot-brand"><span class="foot-word">islet</span><p>Динамический остров для Windows 10 и 11. Бесплатно, MIT.</p></div>
-      <div class="foot-col"><b>Страницы</b><a href="index.html">Главная</a><a href="features.html">Возможности</a><a href="eyes.html">Глазки</a><a href="download.html">Скачать</a></div>
-      <div class="foot-col"><b>Проект</b><a data-link="github" href="https://github.com/PlaybackG/islet" target="_blank" rel="noopener">GitHub</a><a href="https://github.com/PlaybackG/islet/blob/main/LICENSE" target="_blank" rel="noopener">Лицензия MIT</a><a href="https://rama2555.github.io/nusa" target="_blank" rel="noopener">Глазки: nusa</a></div>
-    </div>
-    <div class="foot-big" aria-hidden="true">islet</div>
-    <div class="foot-base"><span>Идея и поведение по мотивам Island</span><span>playbackg.github.io/islet</span></div>
+    <a data-link="github" href="https://github.com/PlaybackG/islet" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://github.com/PlaybackG/islet/blob/main/LICENSE" target="_blank" rel="noopener">Лицензия MIT</a>
+    <a href="https://rama2555.github.io/nusa" target="_blank" rel="noopener">Глазки: nusa</a>
+    <span>Идея и поведение по мотивам Island</span>
   </div>
 </footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-<script src="assets/site.js?v=27"></script>
+<script src="assets/site.js?v=29"></script>
 </body>
 </html>
