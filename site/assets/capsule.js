@@ -136,15 +136,17 @@
     const pmrem = new THREE.PMREMGenerator(renderer);
     scene.environment = pmrem.fromScene(env, .02).texture;
 
-    // корпус: выдавленный скруглённый прямоугольник
-    const W = 3.7, H = 1.04, R = H / 2;
+    // корпус: силуэт выреза из приложения. Плоский верх, вогнутые ушки по бокам, круглый низ
+    const W = 3.1, H = 1.04, R = H / 2, PI = Math.PI;
     const sh = new THREE.Shape();
-    sh.moveTo(-W / 2 + R, -H / 2); sh.lineTo(W / 2 - R, -H / 2);
-    sh.absarc(W / 2 - R, 0, R, -Math.PI / 2, Math.PI / 2, false);
-    sh.lineTo(-W / 2 + R, H / 2);
-    sh.absarc(-W / 2 + R, 0, R, Math.PI / 2, Math.PI * 1.5, false);
-    const depth = .34, bev = .16;
-    const geo = new THREE.ExtrudeGeometry(sh, { depth, bevelEnabled: true, bevelThickness: bev, bevelSize: .13, bevelSegments: 10, curveSegments: 48 });
+    sh.moveTo(-W / 2 - R, H / 2); sh.lineTo(W / 2 + R, H / 2);
+    sh.absarc(W / 2 + R, 0, R, PI / 2, PI, false);
+    sh.absarc(W / 2 - R, 0, R, 0, -PI / 2, true);
+    sh.lineTo(-W / 2 + R, -H / 2);
+    sh.absarc(-W / 2 + R, 0, R, -PI / 2, -PI, true);
+    sh.absarc(-W / 2 - R, 0, R, 0, PI / 2, false);
+    const depth = .34, bev = .1;
+    const geo = new THREE.ExtrudeGeometry(sh, { depth, bevelEnabled: true, bevelThickness: bev, bevelSize: .05, bevelSegments: 8, curveSegments: 48 });
     geo.center();
     const body = new THREE.Mesh(geo, new THREE.MeshPhysicalMaterial({ color: 0x030304, metalness: .35, roughness: .28, clearcoat: 1, clearcoatRoughness: .12, envMapIntensity: 1.3 }));
     const group = new THREE.Group();

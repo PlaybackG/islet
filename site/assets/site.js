@@ -1,13 +1,13 @@
 /* Общий скрипт всех страниц. Каждый блок срабатывает, только если его разметка есть на странице. */
-// Ссылки в одном месте: файл установщика лежит рядом со страницами.
-const LINKS = { download: './IsletSetup.exe', github: 'https://github.com/PlaybackG/islet' };
+// Ссылки в одном месте: установщик лежит в релизе на GitHub, latest всегда ведёт на свежий.
+const LINKS = { download: 'https://github.com/PlaybackG/islet/releases/latest/download/IsletSetup.exe', github: 'https://github.com/PlaybackG/islet' };
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
 const $ = id => document.getElementById(id);
 const root = document.documentElement;
 root.classList.add('js');
 const G = !reduce && window.gsap && window.ScrollTrigger;
-if (G) gsap.registerPlugin(ScrollTrigger);
+if (G) { gsap.registerPlugin(ScrollTrigger); ScrollTrigger.config({ ignoreMobileResize: true }); }
 
 document.querySelectorAll('[data-link]').forEach(a => {
   const url = LINKS[a.dataset.link];
@@ -16,14 +16,17 @@ document.querySelectorAll('[data-link]').forEach(a => {
   if (a.dataset.link === 'download') a.setAttribute('download', '');
 });
 
-/* ---------- фон: три медленных световых пятна, на скрытой вкладке стоят ---------- */
+/* ---------- фон: свет, сетка точек и контуры выреза, которые расходятся от острова ---------- */
 (() => {
   const a = document.createElement('div');
-  a.className = 'aurora'; a.setAttribute('aria-hidden', 'true'); a.innerHTML = '<i></i><i></i><i></i>';
+  a.className = 'aurora'; a.setAttribute('aria-hidden', 'true');
+  a.innerHTML = '<div class="glow"><i></i><i></i><i></i></div><div class="dots"></div><div class="rings"><i></i><i></i><i></i><i></i></div>';
   document.body.prepend(a);
   const vis = () => root.classList.toggle('hidden-tab', document.hidden);
   document.addEventListener('visibilitychange', vis); vis();
-  if (G) gsap.to(a, { yPercent: -18, ease: 'none', scrollTrigger: { trigger: document.body, start: 'top top', end: 'bottom bottom', scrub: 1 } });
+  if (!G) return;
+  gsap.to(a.querySelector('.glow'), { yPercent: -12, ease: 'none', scrollTrigger: { trigger: document.body, start: 'top top', end: 'bottom bottom', scrub: 1 } });
+  gsap.to(a.querySelector('.rings'), { opacity: .22, ease: 'none', scrollTrigger: { trigger: document.body, start: 'top top', end: '+=1200', scrub: 1 } });
 })();
 
 /* ---------- остров-навигация: раскрытие с задержкой, тап на тач-экране ---------- */
@@ -36,7 +39,8 @@ document.querySelectorAll('[data-link]').forEach(a => {
   nav.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') { clearTimeout(t); t = setTimeout(() => set(false), 220); } });
   tg.addEventListener('click', () => set(!nav.classList.contains('open')));
   document.addEventListener('keydown', e => { if (e.key === 'Escape') set(false); });
-  nav.addEventListener('focusin', () => set(true));
+  nav.addEventListener('focusin', e => { if (e.target.matches(':focus-visible')) set(true); });
+  document.addEventListener('pointerdown', e => { if (!nav.contains(e.target)) set(false); });
   nav.addEventListener('focusout', e => { if (!nav.contains(e.relatedTarget)) set(false); });
 })();
 
