@@ -2,8 +2,12 @@
 // Ссылки в одном месте: файл установщика лежит рядом со страницами.
 const LINKS = { download: './IsletSetup.exe', github: 'https://github.com/PlaybackG/islet' };
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
 const $ = id => document.getElementById(id);
-document.documentElement.classList.add('js');
+const root = document.documentElement;
+root.classList.add('js');
+const G = !reduce && window.gsap && window.ScrollTrigger;
+if (G) gsap.registerPlugin(ScrollTrigger);
 
 document.querySelectorAll('[data-link]').forEach(a => {
   const url = LINKS[a.dataset.link];
@@ -11,6 +15,16 @@ document.querySelectorAll('[data-link]').forEach(a => {
   a.href = url;
   if (a.dataset.link === 'download') a.setAttribute('download', '');
 });
+
+/* ---------- фон: три медленных световых пятна, на скрытой вкладке стоят ---------- */
+(() => {
+  const a = document.createElement('div');
+  a.className = 'aurora'; a.setAttribute('aria-hidden', 'true'); a.innerHTML = '<i></i><i></i><i></i>';
+  document.body.prepend(a);
+  const vis = () => root.classList.toggle('hidden-tab', document.hidden);
+  document.addEventListener('visibilitychange', vis); vis();
+  if (G) gsap.to(a, { yPercent: -18, ease: 'none', scrollTrigger: { trigger: document.body, start: 'top top', end: 'bottom bottom', scrub: 1 } });
+})();
 
 /* ---------- остров-навигация: раскрытие с задержкой, тап на тач-экране ---------- */
 (() => {
@@ -26,17 +40,118 @@ document.querySelectorAll('[data-link]').forEach(a => {
   nav.addEventListener('focusout', e => { if (!nav.contains(e.relatedTarget)) set(false); });
 })();
 
+/* ---------- заголовки: слова поднимаются из-под маски ---------- */
+const splitWords = h => {
+  h.setAttribute('aria-label', h.textContent.replace(/\s+/g, ' ').trim());
+  let n = 0;
+  // делим только по обычным пробелам: неразрывный держит пары слов вместе
+  const walk = node => [...node.childNodes].forEach(c => {
+    if (c.nodeType === 1) return walk(c);
+    if (c.nodeType !== 3) return;
+    const frag = document.createDocumentFragment();
+    c.textContent.split(/([ \t\n\r]+)/).forEach(part => {
+      if (!part) return;
+      if (/^[ \t\n\r]+$/.test(part)) return frag.append(part);
+      const w = document.createElement('span'), i = document.createElement('span');
+      w.className = 'wd'; w.setAttribute('aria-hidden', 'true');
+      i.textContent = part; i.style.setProperty('--i', n++);
+      w.append(i); frag.append(w);
+    });
+    c.replaceWith(frag);
+  });
+  walk(h); h.classList.add('kin');
+};
+(() => {
+  if (reduce) return;
+  const top = [...document.querySelectorAll('.hero h1, .phead h1')];
+  top.forEach(h => { splitWords(h); h.style.setProperty('--d0', '120ms'); });
+  if (!('IntersectionObserver' in window)) return;
+  const hs = [...document.querySelectorAll('.section-head h2, .final h2, .split-txt h2, .zoom-head h2')];
+  const io = new IntersectionObserver(es => es.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+  }), { rootMargin: '0px 0px -12% 0px' });
+  hs.forEach(h => { splitWords(h); io.observe(h); });
+})();
+
+/* ---------- первый экран: всё проявляется по очереди после загрузки ---------- */
+(() => {
+  const show = () => {
+    root.classList.add('ready');
+    document.querySelectorAll('.hero h1, .phead h1').forEach(h => h.classList.add('in'));
+  };
+  // Без таймера заголовки остаются пустыми, если браузер придержал кадры.
+  const go = () => { requestAnimationFrame(() => requestAnimationFrame(show)); setTimeout(show, 300); };
+  if (document.fonts && document.fonts.ready) Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 600))]).then(go);
+  else go();
+})();
+
 /* ---------- появление при прокрутке (один раз, из видимого состояния) ---------- */
 (() => {
+  document.querySelectorAll('[data-stagger]').forEach(g => {
+    const step = +g.dataset.stagger || 80;
+    [...g.children].forEach((c, i) => { c.classList.add('rv'); c.style.setProperty('--d', i * step + 'ms'); });
+  });
   if (reduce || !('IntersectionObserver' in window)) return;
-  const els = [...document.querySelectorAll('.lift')].filter(el => el.getBoundingClientRect().top > innerHeight * .9);
-  els.forEach(el => el.classList.add('pre'));
+  const els = [...document.querySelectorAll('.rv, .lift')].filter(el => el.getBoundingClientRect().top > innerHeight * .92);
+  els.forEach(el => el.classList.add('rv', 'pre'));
   const io = new IntersectionObserver(es => es.forEach(e => {
     if (e.isIntersecting) { e.target.classList.remove('pre'); io.unobserve(e.target); }
   }), { rootMargin: '0px 0px -8% 0px' });
   els.forEach(el => io.observe(el));
-  if (window.gsap && document.querySelector('.hero .w')) gsap.from('.hero .w', { yPercent: 60, opacity: 0, duration: 1.1, ease: 'expo.out', stagger: .07, delay: .1 });
-  if (window.gsap && document.querySelector('.phead h1')) gsap.from('.phead h1', { y: 40, opacity: 0, duration: 1.1, ease: 'expo.out', delay: .05 });
+})();
+
+/* ---------- сцены, привязанные к прокрутке ---------- */
+(() => {
+  if (!G) { document.querySelectorAll('.mani').forEach(m => m.classList.add('no-scrub')); return; }
+  // экран с островом выпрямляется, пока подъезжает к центру
+  const ds = document.querySelector('.stage .desk-screen');
+  if (ds) gsap.fromTo(ds, { rotateX: 24, scale: .9, transformPerspective: 1600 }, {
+    rotateX: 0, scale: 1, ease: 'none',
+    scrollTrigger: { trigger: '.stage', start: 'top 92%', end: 'top 22%', scrub: .6 },
+  });
+  // скриншот вырастает из маленькой карточки
+  document.querySelectorAll('.zoom-frame').forEach(f => gsap.fromTo(f, { scale: .72, rotateX: 16, y: 40, transformPerspective: 1400 }, {
+    scale: 1, rotateX: 0, y: 0, ease: 'none',
+    scrollTrigger: { trigger: f.parentNode, start: 'top 95%', end: 'center 55%', scrub: .6 },
+  }));
+  // манифест загорается слово за словом
+  document.querySelectorAll('.mani-q').forEach(q => {
+    const text = q.textContent.trim();
+    q.setAttribute('aria-label', text);
+    q.innerHTML = text.split(/\s+/).map(w => `<span class="mw" aria-hidden="true">${w}</span>`).join(' ');
+    const ws = [...q.children];
+    ScrollTrigger.create({
+      trigger: q, start: 'top 82%', end: 'bottom 45%', scrub: true,
+      onUpdate: s => { const n = Math.round(s.progress * ws.length); ws.forEach((w, i) => w.classList.toggle('lit', i < n)); },
+    });
+  });
+  // большое слово в подвале выезжает снизу
+  document.querySelectorAll('.foot-big').forEach(b => gsap.fromTo(b, { yPercent: 40, opacity: .2 }, {
+    yPercent: 0, opacity: 1, ease: 'none', scrollTrigger: { trigger: b, start: 'top bottom', end: 'bottom bottom', scrub: .6 },
+  }));
+  // свечение за финалом дышит в такт прокрутке
+  document.querySelectorAll('.final .orb').forEach(o => gsap.fromTo(o, { scale: .6 }, {
+    scale: 1.1, ease: 'none', scrollTrigger: { trigger: o.parentNode, start: 'top bottom', end: 'center center', scrub: 1 },
+  }));
+})();
+
+/* ---------- цифры считают до своего значения ---------- */
+(() => {
+  const els = [...document.querySelectorAll('[data-count]')];
+  if (!els.length || reduce || !('IntersectionObserver' in window)) return;
+  const run = el => {
+    const to = +el.dataset.count, from = +(el.dataset.from || 0), t0 = performance.now(), dur = 1400;
+    const step = now => {
+      const k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 4);
+      el.textContent = Math.round(from + (to - from) * e);
+      if (k < 1) requestAnimationFrame(step);
+    };
+    el.textContent = from; requestAnimationFrame(step);
+  };
+  const io = new IntersectionObserver(es => es.forEach(e => {
+    if (e.isIntersecting) { run(e.target); io.unobserve(e.target); }
+  }), { threshold: .6 });
+  els.forEach(el => io.observe(el));
 })();
 
 /* ---------- тур по экранам ---------- */
@@ -82,10 +197,9 @@ document.querySelectorAll('[data-link]').forEach(a => {
     if (st) { const y = st.start + (st.end - st.start) * ((i + .5) / S.length); window.scrollTo({ top: y, behavior: reduce ? 'auto' : 'smooth' }); }
     else show(i);
   }));
-  if (reduce || !window.gsap || !window.ScrollTrigger) return;
-  gsap.registerPlugin(ScrollTrigger);
+  if (!G) return;
   st = ScrollTrigger.create({
-    trigger: '#tourPin', pin: true, start: () => innerWidth < 900 ? 'top 72px' : 'center center',
+    trigger: '#tourPin', pin: true, start: () => innerWidth < 960 ? 'top 64px' : 'center center',
     end: () => '+=' + innerHeight * 3.2, invalidateOnRefresh: true, anticipatePin: 1,
     onUpdate: s => show(Math.min(S.length - 1, Math.floor(s.progress * S.length))),
   });
@@ -137,8 +251,6 @@ document.querySelectorAll('[data-link]').forEach(a => {
       if (play) play.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
     }));
   }
-  // карточка на главной: одна капсула сама перебирает стили
-  if ($('eyeDemo')) IsletCapsule.mountMinis({ host: $('eyeDemo'), tiles: [{ el: $('eyeDemoPill'), style: 0 }], cycle: 2200, onCycle: n => { $('eyeDemoName').textContent = n; } });
 })();
 
 /* ---------- живой остров: сам меняет занятия, пока его видно; наведение замораживает ---------- */
@@ -170,34 +282,54 @@ document.querySelectorAll('[data-link]').forEach(a => {
     timer = setTimeout(() => { set((cur + 1) % order.length); tick(); }, 3200);
   };
   tabs.forEach((b, i) => b.addEventListener('click', () => { set(i); tick(); }));
-  desk.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') { held = true; tick(); } });
-  desk.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') { held = false; tick(); } });
+  const scr = desk.querySelector('.desk-screen') || desk;
+  scr.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') { held = true; tick(); } });
+  scr.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') { held = false; tick(); } });
   document.addEventListener('visibilitychange', tick);
   if (!('IntersectionObserver' in window)) { seen = true; desk.classList.add('on'); return tick(); }
   new IntersectionObserver(es => { seen = es[0].isIntersecting; desk.classList.toggle('on', seen); tick(); }, { threshold: .35 }).observe(desk);
 })();
 
-/* ---------- бегущая строка: вторая копия для бесшовного круга, едет только на экране ---------- */
+/* ---------- бегущие строки: вторая копия для бесшовного круга, едут только на экране ---------- */
 (() => {
   const m = $('marq');
   if (!m) return;
-  const t = m.firstElementChild;
-  t.innerHTML += t.innerHTML;
+  m.querySelectorAll('.marq-track').forEach(t => {
+    const copy = t.innerHTML;
+    t.insertAdjacentHTML('beforeend', copy);
+    [...t.children].slice(t.children.length / 2).forEach(c => c.setAttribute('aria-hidden', 'true'));
+  });
   if (!('IntersectionObserver' in window)) return m.classList.add('on');
   new IntersectionObserver(es => m.classList.toggle('on', es[0].isIntersecting)).observe(m);
 })();
 
-/* ---------- фон: три медленных световых пятна ---------- */
+/* ---------- вопросы: ответ плавно раскрывается по высоте ---------- */
 (() => {
-  const a = document.createElement('div');
-  a.className = 'aurora'; a.setAttribute('aria-hidden', 'true'); a.innerHTML = '<i></i><i></i><i></i>';
-  document.body.prepend(a);
-  document.documentElement.classList.add('has-aurora');
+  document.querySelectorAll('.faq details').forEach(d => {
+    const s = d.querySelector('summary'), a = d.querySelector('.faq-a');
+    if (!s || !a || reduce || !a.animate) return;
+    let anim;
+    s.addEventListener('click', e => {
+      e.preventDefault();
+      if (anim) anim.cancel();
+      const opening = !d.open || d.classList.contains('closing');
+      if (opening) {
+        d.classList.remove('closing'); d.open = true;
+        const h = a.scrollHeight;
+        anim = a.animate([{ height: '0px', opacity: 0 }, { height: h + 'px', opacity: 1 }], { duration: 520, easing: 'cubic-bezier(.32,.72,0,1)' });
+        anim.onfinish = () => { anim = null; };
+      } else {
+        d.classList.add('closing');
+        anim = a.animate([{ height: a.offsetHeight + 'px', opacity: 1 }, { height: '0px', opacity: 0 }], { duration: 380, easing: 'cubic-bezier(.32,.72,0,1)' });
+        anim.onfinish = () => { d.open = false; d.classList.remove('closing'); anim = null; };
+      }
+    });
+  });
 })();
 
 /* ---------- курсор: свет на карточках, магнитные кнопки, лёгкий наклон ---------- */
 (() => {
-  if (!matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+  if (!fine) return;
   document.addEventListener('pointermove', e => {
     const el = e.target.closest && e.target.closest('.shell, .eye-tile');
     if (!el) return;
@@ -213,41 +345,12 @@ document.querySelectorAll('[data-link]').forEach(a => {
     });
     b.addEventListener('pointerleave', () => { b.style.translate = ''; });
   });
-  document.querySelectorAll('.desk-screen, .gal .shell').forEach(el => {
+  document.querySelectorAll('.gal .shell').forEach(el => {
     el.addEventListener('pointermove', e => {
       const r = el.getBoundingClientRect();
-      el.style.setProperty('--ry', ((e.clientX - r.left) / r.width - .5) * 6 + 'deg');
-      el.style.setProperty('--rx', (.5 - (e.clientY - r.top) / r.height) * 5 + 'deg');
+      el.style.setProperty('--ry', ((e.clientX - r.left) / r.width - .5) * 8 + 'deg');
+      el.style.setProperty('--rx', (.5 - (e.clientY - r.top) / r.height) * 6 + 'deg');
     });
     el.addEventListener('pointerleave', () => { el.style.removeProperty('--rx'); el.style.removeProperty('--ry'); });
-  });
-})();
-
-/* ---------- заголовки секций поднимаются по словам ---------- */
-(() => {
-  if (reduce || !('IntersectionObserver' in window)) return;
-  const hs = [...document.querySelectorAll('.section-head h2, .final h2')].filter(h => h.getBoundingClientRect().top > innerHeight * .9);
-  const io = new IntersectionObserver(es => es.forEach(e => {
-    if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
-  }), { rootMargin: '0px 0px -10% 0px' });
-  hs.forEach(h => {
-    h.setAttribute('aria-label', h.textContent.replace(/\s+/g, ' ').trim());
-    let n = 0;
-    // делим только по обычным пробелам: неразрывный держит пары слов вместе
-    const walk = node => [...node.childNodes].forEach(c => {
-      if (c.nodeType === 1) return walk(c);
-      if (c.nodeType !== 3) return;
-      const frag = document.createDocumentFragment();
-      c.textContent.split(/([ \t\n\r]+)/).forEach(part => {
-        if (!part) return;
-        if (/^[ \t\n\r]+$/.test(part)) return frag.append(part);
-        const w = document.createElement('span'), i = document.createElement('span');
-        w.className = 'wd'; w.setAttribute('aria-hidden', 'true');
-        i.textContent = part; i.style.transitionDelay = n++ * 60 + 'ms';
-        w.append(i); frag.append(w);
-      });
-      c.replaceWith(frag);
-    });
-    walk(h); h.classList.add('kin'); io.observe(h);
   });
 })();
