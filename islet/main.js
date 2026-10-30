@@ -216,7 +216,7 @@ function applyZoom() {
 }
 
 // Сторож окна острова: если страница зависла дольше 8 с или её процесс упал — окно пересоздаётся.
-let hangTimer = null, recreating = false, lastRecreate = 0;
+let hangTimer = null, recreating = false, lastRecreate = 0, quitting = false;
 function recreateIsland(why) {
   if (recreating) return;
   recreating = true;
@@ -258,12 +258,15 @@ function createIsland() {
     hangTimer = setTimeout(() => recreateIsland('unresponsive'), wait);
   });
   island.on('responsive', () => { clearTimeout(hangTimer); hangTimer = null; });
+  // Окно могли закрыть снаружи (с панели задач, из диспетчера окон) — без него приложение осталось бы пустым.
+  island.on('closed', () => { if (!quitting) recreateIsland('closed'); });
   // При выходе из Windows will-quit может не успеть — баннеры возвращаем здесь.
-  island.on('session-end', restoreBanners);
+  island.on('session-end', () => { quitting = true; restoreBanners(); });
   island.webContents.on('render-process-gone', (e, d) => {
     if (d.reason !== 'clean-exit') recreateIsland('render gone: ' + d.reason);
   });
   islandHwnd = native.handleOf(island);
+  native.toolWindow(islandHwnd);
 }
 
 function createOverlay() {
@@ -278,6 +281,7 @@ function createOverlay() {
   overlay.setAlwaysOnTop(true, 'screen-saver');
   overlay.loadFile(path.join(__dirname, 'ui', 'overlay.html'));
   overlayHwnd = native.handleOf(overlay);
+  native.toolWindow(overlayHwnd);
 }
 
 // Мастер живёт в окне без рамки: полоса заголовка своя и выезжает при наведении на верх, как в Firefox.
@@ -1960,6 +1964,7 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {}); // живём в трее
+app.on('before-quit', () => { quitting = true; });
 
 // Ошибки интерфейса — в консоль главного процесса, чтобы их было видно при запуске из терминала.
 app.on('web-contents-created', (e, wc) => {

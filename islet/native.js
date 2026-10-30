@@ -43,6 +43,12 @@ const GetLastInputInfo = user32.func('bool __stdcall GetLastInputInfo(_Inout_ LA
 const GetTickCount = kernel32.func('uint32_t __stdcall GetTickCount()');
 const GetSystemPowerStatus = kernel32.func('bool __stdcall GetSystemPowerStatus(_Out_ SYSTEM_POWER_STATUS *st)');
 
+const GetWindowLongPtrW = user32.func('intptr_t __stdcall GetWindowLongPtrW(uintptr_t hWnd, int index)');
+const SetWindowLongPtrW = user32.func('intptr_t __stdcall SetWindowLongPtrW(uintptr_t hWnd, int index, intptr_t value)');
+const SetWindowPos = user32.func('bool __stdcall SetWindowPos(uintptr_t hWnd, uintptr_t after, int x, int y, int cx, int cy, uint32_t flags)');
+const GWL_EXSTYLE = -20, WS_EX_TOOLWINDOW = 0x80n, WS_EX_APPWINDOW = 0x40000n;
+const SWP_STYLE_ONLY = 0x37; // NOSIZE | NOMOVE | NOZORDER | NOACTIVATE | FRAMECHANGED
+
 const VK = { CONTROL: 0x11, SHIFT: 0x10, MENU: 0x12, LWIN: 0x5b, RWIN: 0x5c, CAPITAL: 0x14, V: 0x56 };
 const KEYUP = 2;
 
@@ -178,6 +184,14 @@ function handleOf(win) {
   return b.readBigUInt64LE(0);
 }
 
+// skipTaskbar держится на ITaskbarList и теряется, когда панель задач пересобирает список окон.
+// WS_EX_TOOLWINDOW — свойство самого окна: такое окно Windows на панель не ставит никогда.
+function toolWindow(hwnd) {
+  const ex = BigInt(GetWindowLongPtrW(hwnd, GWL_EXSTYLE));
+  SetWindowLongPtrW(hwnd, GWL_EXSTYLE, (ex | WS_EX_TOOLWINDOW) & ~WS_EX_APPWINDOW);
+  SetWindowPos(hwnd, 0n, 0, 0, 0, 0, SWP_STYLE_ONLY);
+}
+
 // Сколько миллисекунд не было ввода с клавиатуры и мыши.
 function idleMs() {
   const info = { cbSize: 8, dwTime: 0 };
@@ -264,6 +278,6 @@ function setRegDword(sub, name, v) {
 
 module.exports = {
   foreground, focusWindow, sendCtrlV, capsLock, keyboardLayout,
-  clipboardSeq, clipboardIsPrivate, clipboardHasFiles, windowRect, isMaximized, className, processName, handleOf,
+  clipboardSeq, clipboardIsPrivate, clipboardHasFiles, windowRect, isMaximized, className, processName, handleOf, toolWindow,
   idleMs, battery, mouseDown, audioPeak, fileDragging, regDword, setRegDword,
 };
