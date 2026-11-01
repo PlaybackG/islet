@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5560d8"/><stop offset=".5" stop-color="#8d86f2"/><stop offset=".8" stop-color="#ffb27a"/></linearGradient>
+    <linearGradient id="a" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5a56c9"/><stop offset="1" stop-color="#3a3a9c"/></linearGradient>
+    <linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2d2f86"/><stop offset="1" stop-color="#20246a"/></linearGradient>
+    <linearGradient id="c" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#171a4d"/><stop offset="1" stop-color="#0d0f2c"/></linearGradient>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#sky)"/>
+  <path fill="url(#a)" d="M0 640c280-120 520-90 760 10s500 60 840-110v460H0z"/>
+  <path fill="url(#b)" d="M0 760c320-40 560-120 840-40s470 60 760-60v340H0z"/>
+  <path fill="url(#c)" d="M0 880c300-90 620-70 900-20s480 10 700-70v210H0z"/>
+</svg>
