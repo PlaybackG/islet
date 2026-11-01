@@ -3,7 +3,7 @@
 <p align="center">
   <a href="https://github.com/PlaybackG/islet/releases/latest/download/IsletSetup.exe"><img src="https://img.shields.io/badge/Скачать_для_Windows-9aa6ff?style=for-the-badge&logoColor=white" alt="Скачать для Windows"></a>
   <a href="https://playbackg.github.io/islet/"><img src="https://img.shields.io/badge/Сайт-151821?style=for-the-badge" alt="Сайт"></a>
-  <a href="https://github.com/PlaybackG/islet/releases/latest"><img src="https://img.shields.io/badge/версия-0.1.0-151821?style=for-the-badge" alt="Версия"></a>
+  <a href="https://github.com/PlaybackG/islet/releases/latest"><img src="https://img.shields.io/badge/версия-0.1.1-151821?style=for-the-badge" alt="Версия"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/лицензия-MIT-151821?style=for-the-badge" alt="Лицензия MIT"></a>
 </p>
 
