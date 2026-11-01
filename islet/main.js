@@ -889,6 +889,9 @@ function dlIgnored(name) {
   return /\.te?mp$/i.test(name) || !!dlIgnoreRe?.test(name);
 }
 
+// Настоящее имя файла. Firefox и Zen пишут во временный имя.СЛУЧАЙНО.ext.part, а рядом держат пустой файл с готовым именем.
+const dlFinalName = (n) => n.replace(/\.[\w-]{8}(\.[^.]+)?\.part$/i, '$1').replace(TEMP_EXT, '');
+
 // Файл ещё не готов, если рядом лежит его временный двойник (браузер ждёт «Сохранить как» или докачивает).
 function hasTempTwin(p) {
   return TEMP_EXTS.some((e) => fs.existsSync(p + '.' + e));
@@ -946,6 +949,66 @@ function historyFiles() {
   return out;
 }
 
+// Firefox и Zen размер на диск не пишут, но адрес загрузки кладут в places.sqlite сразу при старте.
+function firefoxPlaces() {
+  const out = [];
+  for (const root of ['Mozilla\\Firefox\\Profiles', 'zen\\Profiles']) {
+    const dir = path.join(process.env.APPDATA || '', root);
+    let names;
+    try { names = fs.readdirSync(dir); } catch { continue; }
+    for (const n of names) out.push(path.join(dir, n, 'places.sqlite'));
+  }
+  return out;
+}
+
+// Полный размер по адресу: сначала HEAD, если сервер его не даёт, то запрос первого байта. Без кук браузера.
+async function urlSize(url) {
+  if (!/^https?:/i.test(url)) return 0;
+  const sized = (r) => (r.headers.get('content-encoding') ? 0 : Number(r.headers.get('content-range')?.split('/')[1] || r.headers.get('content-length')) || 0);
+  try {
+    const r = await fetch(url, { method: 'HEAD', redirect: 'follow', signal: AbortSignal.timeout(6000) });
+    if (r.ok && sized(r)) return sized(r);
+  } catch {}
+  try {
+    const c = new AbortController(), t = setTimeout(() => c.abort(), 6000);
+    const r = await fetch(url, { headers: { Range: 'bytes=0-0' }, redirect: 'follow', signal: c.signal });
+    clearTimeout(t);
+    const n = r.status === 206 ? sized(r) : 0;
+    c.abort();
+    return n;
+  } catch { return 0; }
+}
+
+async function lookupFirefoxTotals(need, tmp) {
+  const { DatabaseSync } = require('node:sqlite');
+  const { pathToFileURL } = require('node:url');
+  const left = need.filter(([, d]) => !d.total && !d.urlTried);
+  if (!left.length) return;
+  for (const f of firefoxPlaces()) {
+    const mt = await Promise.all([f, f + '-wal'].map((x) => fs.promises.stat(x).then((s) => s.mtimeMs, () => 0)));
+    if (Date.now() - Math.max(...mt) > 10 * 60e3) continue;
+    const urls = [];
+    try {
+      await fs.promises.copyFile(f, tmp);
+      await fs.promises.copyFile(f + '-wal', tmp + '-wal').catch(() => fs.promises.rm(tmp + '-wal', { force: true }));
+      const db = new DatabaseSync(tmp);
+      const q = db.prepare(`select p.url u from moz_annos a join moz_anno_attributes n on n.id = a.anno_attribute_id join moz_places p on p.id = a.place_id
+        where n.name = 'downloads/destinationFileURI' and a.content = ? collate nocase order by a.dateAdded desc limit 1`);
+      for (const [p, d] of left) {
+        const r = q.get(pathToFileURL(path.join(path.dirname(p), dlFinalName(d.name))).href);
+        if (r?.u) urls.push([d, r.u]);
+      }
+      db.close();
+    } catch {}
+    for (const [d, u] of urls) {
+      d.urlTried = true;   // один адрес спрашиваем один раз
+      const n = await urlSize(u);
+      if (n > d.size) d.total = n;
+    }
+    if (left.every(([, d]) => d.urlTried)) break;
+  }
+}
+
 let dlTotalBusy = false;
 async function lookupDlTotals() {
   const now = Date.now();
@@ -973,6 +1036,7 @@ async function lookupDlTotals() {
       } catch {}
       if (need.every(([, d]) => d.total)) break;
     }
+    await lookupFirefoxTotals(need, tmp);
   } finally {
     for (const f of [tmp, tmp + '-wal', tmp + '-shm']) fs.promises.rm(f, { force: true }).catch(() => {});
     dlTotalBusy = false;
@@ -996,7 +1060,7 @@ function pollActiveDownloads() {
   }
   const list = [...activeDl.values()].filter((d) => d.live);
   const cur = list.sort((a, b) => b.t - a.t)[0];
-  const out = cur ? { name: cur.name.replace(TEMP_EXT, '').replace(/^Unconfirmed \d+$/, 'Файл'), size: cur.size, total: cur.total || 0, speed: cur.speed, count: list.length } : null;
+  const out = cur ? { name: dlFinalName(cur.name).replace(/^Unconfirmed \d+$/, 'Файл'), size: cur.size, total: cur.total || 0, speed: cur.speed, count: list.length } : null;
   const key = JSON.stringify(out);
   if (key !== dlSent) { dlSent = cur ? key : ''; send('dl-progress', out); }
 }
