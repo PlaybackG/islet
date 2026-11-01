@@ -1663,6 +1663,50 @@ function registerIpc() {
       return { path: p, name: path.basename(p).replace(/\.(exe|lnk|url)$/i, ''), icon: dockIcons.get(p) };
     }));
   }
+  const iconOf = async (p) => {
+    if (!dockIcons.has(p)) {
+      try { dockIcons.set(p, (await app.getFileIcon(p, { size: 'large' })).toDataURL()); } catch { dockIcons.set(p, ''); }
+    }
+    return dockIcons.get(p);
+  };
+  // Сколько раз запускали приложения: Windows сама ведёт этот счётчик в реестре (UserAssist), имена там в ROT13.
+  async function runCounts() {
+    const counts = new Map();
+    const rot13 = (s) => s.replace(/[a-z]/gi, (c) => String.fromCharCode(c.charCodeAt(0) + (c.toLowerCase() < 'n' ? 13 : -13)));
+    for (const id of ['{F4E57C4B-2036-45F0-A9AB-443BCFE33D9F}', '{CEBFF5CD-ACE2-4F4F-9178-9926F41749EA}']) {
+      const { out } = await run('reg', ['query', `HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\UserAssist\\${id}\\Count`], 4000);
+      for (const line of out.split(/\r?\n/)) {
+        const m = line.match(/^\s+(.+?)\s+REG_BINARY\s+([0-9A-F]{16,})/i);
+        if (!m) continue;
+        const n = Buffer.from(m[2].slice(8, 16), 'hex').readUInt32LE(0);
+        const name = path.basename(rot13(m[1]).replace(/\\/g, '/')).replace(/\.(exe|lnk)$/i, '').toLowerCase();
+        counts.set(name, Math.max(counts.get(name) || 0, n));
+      }
+    }
+    return counts;
+  }
+  // Всё, что есть в меню «Пуск», самые запускаемые сверху.
+  async function startApps() {
+    const skip = /uninstall|unins\d|удал|справк|help|readme|manual|documentation|website|license|лиценз/i;
+    const found = new Map();
+    const walk = async (dir, depth) => {
+      const list = await fs.promises.readdir(dir, { withFileTypes: true }).catch(() => []);
+      for (const e of list) {
+        const p = path.join(dir, e.name);
+        if (e.isDirectory()) { if (depth < 4) await walk(p, depth + 1); continue; }
+        if (!/\.(lnk|url)$/i.test(e.name) || skip.test(e.name)) continue;
+        const name = e.name.replace(/\.(lnk|url)$/i, '');
+        if (!found.has(name.toLowerCase())) found.set(name.toLowerCase(), { path: p, name });
+      }
+    };
+    await walk(path.join(process.env.APPDATA || '', 'Microsoft/Windows/Start Menu/Programs'), 0);
+    await walk(path.join(process.env.ProgramData || 'C:\\ProgramData', 'Microsoft/Windows/Start Menu/Programs'), 0);
+    const counts = await runCounts();
+    const apps = [...found.entries()].map(([key, a]) => ({ ...a, runs: counts.get(key) || 0 }));
+    apps.sort((a, b) => b.runs - a.runs || a.name.localeCompare(b.name, 'ru'));
+    return Promise.all(apps.map(async (a) => ({ path: a.path, name: a.name, icon: await iconOf(a.path), added: dock.data.includes(a.path) })));
+  }
+  handle('dock-apps', startApps);
   handle('dock-get', dockItems);
   handle('dock-add', async (paths) => {
     if (!paths?.length) {

@@ -1,7 +1,7 @@
 {
   "name": "islet",
   "productName": "Islet",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Островок: динамический остров для Windows",
   "main": "main.js",
   "private": true,

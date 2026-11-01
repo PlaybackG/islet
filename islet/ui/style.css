@@ -381,6 +381,21 @@ input, textarea { font: inherit; color: inherit; }
 .dock .app:active:has(.rm:active) { transform: none; }
 .dock .add { width: 44px; height: 44px; border-radius: 12px; border: 1.5px dashed rgba(255, 255, 255, .2); color: var(--faint); display: grid; place-items: center; flex: none; margin-left: 4px; transition: color .15s, border-color .15s; }
 .dock .add:hover { color: var(--fg); border-color: rgba(255, 255, 255, .4); }
+/* выбор приложения: висит над доком, клик по строке добавляет или убирает, список не закрывается */
+.home { position: relative; }
+.dock-menu { position: absolute; right: 0; bottom: 66px; z-index: 5; width: 320px; height: 262px; padding: 6px; border-radius: 16px; background: #1b1b1b; box-shadow: 0 10px 30px rgba(0, 0, 0, .6); display: flex; flex-direction: column; gap: 4px; }
+.dock-menu[hidden] { display: none; }
+.dock-menu .search { flex: none; height: 36px; border-radius: 11px; }
+.dock-list { flex: 1; min-height: 0; overflow-y: auto; }
+.dock-list button { display: flex; align-items: center; gap: 10px; width: 100%; height: 38px; padding: 0 8px; border-radius: 10px; text-align: left; }
+.dock-list button:hover { background: var(--s1); }
+.dock-list img { width: 24px; height: 24px; flex: none; }
+.dock-list span { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dock-list .ok-i { color: var(--fg); visibility: hidden; display: grid; }
+.dock-list .on .ok-i { visibility: visible; }
+.dock-list .none { color: var(--faint); padding: 10px; }
+.dock-file { flex: none; height: 32px; border-radius: 10px; color: var(--dim); transition: background .15s, color .15s; }
+.dock-file:hover { background: var(--s1); color: var(--fg); }
 .media-card::before { content: ''; position: absolute; inset: 0; background: radial-gradient(120% 140% at 0 0, var(--cover), transparent 60%); opacity: .14; pointer-events: none; }
 .media-info { flex: 1; min-width: 0; position: relative; }
 .m-app { font-size: 10.5px; letter-spacing: .8px; text-transform: uppercase; color: var(--dim); font-weight: 600; }

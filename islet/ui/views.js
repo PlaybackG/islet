@@ -114,7 +114,7 @@ Views.home = {
     const dock = $('#dock');
     api.invoke('dock-get').then((it) => this.paintDock(it));
     dock.onclick = async (e) => {
-      if (e.target.closest('.add')) { this.paintDock(await api.invoke('dock-add', [])); return; }
+      if (e.target.closest('.add')) { e.stopPropagation(); this.toggleDockMenu(); return; }
       const a = e.target.closest('.app');
       if (!a) return;
       if (e.target.closest('.rm')) { this.paintDock(await api.invoke('dock-remove', a.dataset.path)); return; }
@@ -134,6 +134,21 @@ Views.home = {
       const paths = App.dropPaths(e);
       if (paths.length) this.paintDock(await api.invoke('dock-add', paths));
     });
+
+    // Выбор из установленных приложений: самые запускаемые сверху, файл только как запасной путь.
+    const dm = $('#dockMenu'), ds = $('#dockSearch');
+    ds.oninput = () => this.paintDockApps();
+    ds.onkeydown = (e) => { if (e.key === 'Escape') { e.stopPropagation(); dm.hidden = true; } };
+    $('#dockList').onclick = async (e) => {
+      const b = e.target.closest('[data-path]');
+      if (!b) return;
+      const a = this.dockApps.find((x) => x.path === b.dataset.path);
+      a.added = !a.added;
+      b.classList.toggle('on', a.added);
+      this.paintDock(await api.invoke(a.added ? 'dock-add' : 'dock-remove', a.added ? [a.path] : a.path));
+    };
+    $('#dockFile').onclick = async () => { dm.hidden = true; this.paintDock(await api.invoke('dock-add', [])); };
+    document.addEventListener('click', (e) => { if (!dm.hidden && !dm.contains(e.target)) dm.hidden = true; });
 
     // Устройство вывода звука.
     const menu = $('#outMenu');
@@ -158,6 +173,22 @@ Views.home = {
   paintDock(items) {
     $('#dock').innerHTML = items.map((d) => `<button class="app" data-path="${T.esc(d.path)}" title="${T.esc(d.name)}">${d.icon ? `<img src="${d.icon}" alt="">` : icon('app', 26)}<span class="rm" title="Убрать">${icon('x', 10)}</span></button>`).join('')
       + `<button class="add" title="Добавить приложение">${icon('plus', 20)}</button>`;
+  },
+  async toggleDockMenu() {
+    const dm = $('#dockMenu');
+    if (!dm.hidden) { dm.hidden = true; return; }
+    $('#dockSearch').value = '';
+    $('#dockList').innerHTML = '<div class="none">Ищу приложения…</div>';
+    dm.hidden = false;
+    $('#dockSearch').focus();
+    this.dockApps = await api.invoke('dock-apps').catch(() => []);
+    this.paintDockApps();
+  },
+  paintDockApps() {
+    const q = $('#dockSearch').value.trim().toLowerCase();
+    const list = (this.dockApps || []).filter((a) => a.name.toLowerCase().includes(q));
+    $('#dockList').innerHTML = list.length ? list.map((a) => `<button data-path="${T.esc(a.path)}" class="${a.added ? 'on' : ''}" title="${T.esc(a.name)}">${a.icon ? `<img src="${a.icon}" alt="">` : icon('app', 24)}<span>${T.esc(a.name)}</span><i class="ok-i">${icon('check', 15)}</i></button>`).join('')
+      : '<div class="none">Ничего не нашлось</div>';
   },
   async loadOut() {
     const list = await api.invoke('audio-list').catch(() => []);

@@ -5,7 +5,7 @@ const INVOKE = new Set([
   'state', 'win-focus',
   'clip-paste', 'clip-copy', 'clip-pin', 'clip-delete', 'clip-clear', 'clip-pause', 'text-copy', 'text-paste', 'text-read',
   'notif-open', 'notif-delete', 'notif-clear',
-  'shelf-get', 'shelf-add', 'shelf-remove', 'shelf-copy', 'dock-get', 'dock-add', 'dock-remove', 'open-path', 'show-path', 'open-url', 'edit-image',
+  'shelf-get', 'shelf-add', 'shelf-remove', 'shelf-copy', 'dock-get', 'dock-apps', 'dock-add', 'dock-remove', 'open-path', 'show-path', 'open-url', 'edit-image',
   'media-ctl', 'vol-get', 'vol-set', 'audio-list', 'audio-set', 'bright-get', 'bright-set','mic-get', 'mic-toggle', 'theme', 'radios-get', 'radios-set', 'net-get', 'lock', 'power',
   'ai-chat', 'ai-stop', 'ai-once', 'stt', 'weather', 'geo-search', 'notes-save',
   'timer-start', 'timer-stop', 'timer-pause', 'reminder-parse', 'reminder-add', 'reminder-remove', 'fmt-when',
