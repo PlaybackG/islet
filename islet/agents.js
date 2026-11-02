@@ -20,7 +20,21 @@ const LOCAL = [
   { id: 'lmstudio', name: 'LM Studio', baseUrl: 'http://127.0.0.1:1234/v1' },
 ];
 
+const MAC = process.platform === 'darwin';
+// Из Finder приложение стартует с урезанным PATH: добавляем обычные места установки CLI.
+if (MAC) {
+  const home = os.homedir();
+  process.env.PATH = [...new Set([...(process.env.PATH || '').split(':'), '/opt/homebrew/bin', '/usr/local/bin', `${home}/.local/bin`, `${home}/.claude/local`, `${home}/.npm-global/bin`, `${home}/.bun/bin`])].join(':');
+}
+
 function where(bin) {
+  if (MAC) {
+    for (const d of process.env.PATH.split(':')) {
+      const p = path.join(d, bin);
+      try { fs.accessSync(p, fs.constants.X_OK); return Promise.resolve(p); } catch {}
+    }
+    return Promise.resolve('');
+  }
   return new Promise((res) => {
     execFile('where.exe', [bin], { windowsHide: true, timeout: 4000 }, (e, out) => {
       const all = e ? [] : String(out).split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
@@ -185,7 +199,7 @@ async function run(id, o, onDelta) {
   }
   let cwd = o.cwd && fs.existsSync(o.cwd) ? o.cwd : os.homedir();
   // .cmd от npm запускается только через оболочку; промпт идёт в stdin, а не в командную строку
-  const p = spawn(cmd, args, { cwd, shell: true, windowsHide: true, env: { ...process.env, NO_COLOR: '1' } });
+  const p = spawn(cmd, args, { cwd, shell: true, windowsHide: true, detached: MAC, env: { ...process.env, NO_COLOR: '1' } });
   procs.set(id, p);
   const st = {};
   let full = '', session = '', err = '', buf = '', lastTool = '';
@@ -222,6 +236,7 @@ function stop(id) {
   const p = procs.get(id);
   if (!p || p.exitCode != null) return false;
   p.killedByUser = true;
+  if (MAC) { try { process.kill(-p.pid, 'SIGTERM'); } catch {} return true; }
   execFile('taskkill', ['/pid', String(p.pid), '/t', '/f'], { windowsHide: true }, () => {});
   return true;
 }

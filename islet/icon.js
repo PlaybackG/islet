@@ -27,7 +27,8 @@ function cover(x, y, inside) {
   return n / 16;
 }
 
-function trayIcon(size = 32) {
+// template — силуэт для строки меню macOS: глазки вырезаны, цвет подставит система.
+function trayIcon(size = 32, template = false) {
   const s = size / 32;
   const buf = Buffer.alloc(size * size * 4);
   const pill = (x, y) => {
@@ -43,6 +44,7 @@ function trayIcon(size = 32) {
       const w = Math.max(cover(x, y, e1), cover(x, y, e2));
       const i = (y * size + x) * 4;
       const v = Math.round(255 * w);
+      if (template) { buf[i + 3] = Math.round(255 * a * (1 - w)); continue; }
       buf[i] = v; buf[i + 1] = v; buf[i + 2] = v; buf[i + 3] = Math.round(255 * a);
     }
   }

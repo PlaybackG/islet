@@ -1,6 +1,6 @@
 // Вкладки панели. Каждая: init(state) один раз, enter(opts) при показе, leave(), key(e) → true, если клавиша обработана.
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-const fileUrl = (p) => 'file:///' + p.replace(/\\/g, '/').split('/').map((s, i) => (i ? encodeURIComponent(s) : s)).join('/');
+const fileUrl = (p) => 'file:///' + p.replace(/\\/g, '/').replace(/^\/+/, '').split('/').map((s, i) => (i ? encodeURIComponent(s) : s)).join('/');
 const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
 const errText = (e) => String(e?.message || e).replace(/^Error invoking remote method '[^']+': (Error: )?/, '');
 const dataUrl = (blob) => new Promise((ok, fail) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = () => fail(r.error); r.readAsDataURL(blob); });
@@ -421,7 +421,7 @@ Views.clips = {
       if (e.shiftKey) { api.invoke('clip-copy', c.id); App.close(true); } else api.invoke('clip-paste', c.id);
       return true;
     }
-    if (e.ctrlKey && e.code === 'KeyP' && c) { e.preventDefault(); api.invoke('clip-pin', c.id); return true; }
+    if ((e.ctrlKey || e.metaKey) && e.code === 'KeyP' && c) { e.preventDefault(); api.invoke('clip-pin', c.id); return true; }
     if (e.key === 'Delete' && c && document.activeElement !== $('#clipSearch')) { api.invoke('clip-delete', c.id); return true; }
     if (/^[1-9]$/.test(e.key) && e.altKey) { const x = this.shown[+e.key - 1]; if (x) api.invoke('clip-paste', x.id); return true; }
   },
@@ -507,7 +507,7 @@ function fileExt(name) { const m = /\.([a-z0-9]{1,5})$/i.exec(name || ''); retur
 function docIcon(ext, w = 32) {
   const c = (DOC_COLORS.find(([re]) => re.test(ext)) || [0, '#8a8a92'])[1];
   const label = ext.toUpperCase().slice(0, 4);
-  return `<svg class="doc" width="${w}" height="${w * 1.25}" viewBox="0 0 32 40"><path d="M4 0h18l10 10v26a4 4 0 0 1-4 4H4a4 4 0 0 1-4-4V4a4 4 0 0 1 4-4z" fill="${c}"/><path d="M22 0v6a4 4 0 0 0 4 4h6z" fill="#fff" fill-opacity=".35"/><text x="16" y="28" text-anchor="middle" font-size="${label.length > 3 ? 7 : 8.5}" font-weight="700" fill="#fff" font-family="Segoe UI, sans-serif">${T.esc(label)}</text></svg>`;
+  return `<svg class="doc" width="${w}" height="${w * 1.25}" viewBox="0 0 32 40"><path d="M4 0h18l10 10v26a4 4 0 0 1-4 4H4a4 4 0 0 1-4-4V4a4 4 0 0 1 4-4z" fill="${c}"/><path d="M22 0v6a4 4 0 0 0 4 4h6z" fill="#fff" fill-opacity=".35"/><text x="16" y="28" text-anchor="middle" font-size="${label.length > 3 ? 7 : 8.5}" font-weight="700" fill="#fff" font-family="Segoe UI, system-ui, sans-serif">${T.esc(label)}</text></svg>`;
 }
 
 Views.shelf = {
@@ -523,7 +523,7 @@ Views.shelf = {
       if (!it) { this.sel.clear(); this.paint(); return; }
       const p = it.dataset.path;
       if (e.target.closest('.x')) { this.set(await api.invoke('shelf-remove', [p])); return; }
-      if (!e.ctrlKey) this.sel.clear();
+      if (!(e.ctrlKey || e.metaKey)) this.sel.clear();
       this.sel.has(p) ? this.sel.delete(p) : this.sel.add(p);
       this.paint();
     };
@@ -593,7 +593,7 @@ Views.shelf = {
   },
   key(e) {
     if (e.key === 'Delete' && this.sel.size) { $('#shelfClear').click(); return true; }
-    if (e.ctrlKey && e.code === 'KeyA') { e.preventDefault(); this.items.forEach((i) => this.sel.add(i.path)); this.paint(); return true; }
+    if ((e.ctrlKey || e.metaKey) && e.code === 'KeyA') { e.preventDefault(); this.items.forEach((i) => this.sel.add(i.path)); this.paint(); return true; }
   },
 };
 
@@ -648,7 +648,7 @@ Views.text = {
     this.info();
   },
   key(e) {
-    if (e.ctrlKey && e.key === 'Enter') { $('#txtPaste').click(); return true; }
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { $('#txtPaste').click(); return true; }
   },
 };
 

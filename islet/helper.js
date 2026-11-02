@@ -2,17 +2,26 @@
 const { spawn } = require('child_process');
 const path = require('path');
 
+// macOS: хелпер живёт внутри системного perl, только такому процессу отвечает MediaRemote.
+const LOAD_DYLIB = 'require DynaLoader; my $l = DynaLoader::dl_load_file($ARGV[0], 0) or die DynaLoader::dl_error();'
+  + ' DynaLoader::dl_install_xsub("main::run", DynaLoader::dl_find_symbol($l, "islet_helper"))->();';
+
 let proc = null;
 let buf = '';
 let nextId = 1;
 const pending = new Map();
 
 function start() {
-  const script = path.join(__dirname, 'helper.ps1').replace('app.asar', 'app.asar.unpacked');
-  proc = spawn('powershell.exe', ['-NoProfile', '-NoLogo', '-ExecutionPolicy', 'Bypass', '-File', script], {
-    windowsHide: true,
-    stdio: ['pipe', 'pipe', 'pipe'],
-  });
+  const unpacked = (p) => p.replace('app.asar', 'app.asar.unpacked');
+  proc = process.platform === 'darwin'
+    ? spawn('/usr/bin/perl', ['-e', LOAD_DYLIB, unpacked(path.join(__dirname, 'mac', 'helper.dylib'))], {
+      stdio: ['pipe', 'pipe', 'pipe'],
+      env: { ...process.env, ...(__dirname.includes('app.asar') && { ISLET_BT: '1' }) },
+    })
+    : spawn('powershell.exe', ['-NoProfile', '-NoLogo', '-ExecutionPolicy', 'Bypass', '-File', unpacked(path.join(__dirname, 'helper.ps1'))], {
+      windowsHide: true,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
   proc.stdout.setEncoding('utf8');
   proc.stdout.on('data', (chunk) => {
     buf += chunk;

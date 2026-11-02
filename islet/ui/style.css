@@ -78,6 +78,14 @@ input, textarea { font: inherit; color: inherit; }
 /* у открытой панели серая кромка заметнее, как у Island */
 .island.expanded .goo stop { stop-color: var(--edge, rgba(255, 255, 255, .34)); }
 
+/* ---------- Чёлка MacBook: глазки и подписи не должны попасть под вырез ---------- */
+
+.island.notch .slot { bottom: auto; height: var(--nh); }
+.island.notch .eyes { left: auto; right: calc(50% + var(--nw) / 2 + 14px); top: calc(var(--nh) / 2); transform: translate(var(--lx), calc(-50% + var(--ly))); }
+.island.notch.drop .slot { top: var(--nh); bottom: 0; height: auto; }
+.island.notch.drop .compact { padding-top: var(--nh); }
+.island.notch .panel { padding-top: calc(var(--nh) + 4px); }
+
 /* ---------- Компактный вид ---------- */
 
 .compact {
@@ -173,7 +181,7 @@ input, textarea { font: inherit; color: inherit; }
 /* пипетка */
 .swatch { width: 64px; height: 64px; border-radius: 16px; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .12); }
 .toast-text .ok { color: var(--green); font-size: 12px; font-weight: 500; margin-left: 6px; }
-.toast-text .mono { font-family: Consolas, "Cascadia Mono", monospace; font-size: 12.5px !important; }
+.toast-text .mono { font-family: Consolas, Menlo, "Cascadia Mono", monospace; font-size: 12.5px !important; }
 .toast-text .sw { display: flex !important; gap: 5px; margin-top: 6px !important; }
 .toast-text .sw i { width: 18px; height: 18px; border-radius: 5px; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14); }
 /* свечение вокруг острова, пока карточка ждёт ответа; анимируется только прозрачность */
@@ -548,7 +556,7 @@ textarea::placeholder, input::placeholder { color: var(--faint); }
 .f-card .z { font-size: 11.5px; color: #6f6f6f; }
 .f-card .x { position: absolute; top: -5px; right: -5px; width: 18px; height: 18px; border-radius: 50%; background: #333; display: grid; place-items: center; color: var(--fg); }
 .msg.err .tx { color: #ff8a95; }
-.msg code { background: rgba(255, 255, 255, .1); padding: 1px 4px; border-radius: 4px; font: 12px Consolas, monospace; }
+.msg code { background: rgba(255, 255, 255, .1); padding: 1px 4px; border-radius: 4px; font: 12px Consolas, Menlo, monospace; }
 .msg pre { position: relative; background: var(--card); border-radius: 10px; padding: 10px 12px; overflow-x: auto; margin: 6px 0; }
 .msg pre code { background: none; padding: 0; }
 .msg .code-copy { position: absolute; top: 5px; right: 5px; width: 24px; height: 24px; border-radius: 6px; display: grid; place-items: center; color: var(--dim); background: rgba(255, 255, 255, .06); }
@@ -711,6 +719,6 @@ textarea::placeholder, input::placeholder { color: var(--faint); }
 /* командная строка */
 .cmd-bar { display: flex; align-items: center; gap: 10px; height: 46px; padding: 0 10px 0 14px; border-radius: 16px; background: var(--card); color: var(--dim); flex: none; }
 .cmd-bar input { flex: 1; min-width: 0; background: none; border: 0; outline: none; font-size: 16px; color: var(--fg); user-select: text; }
-kbd { font: 11px "Segoe UI", sans-serif; color: var(--dim); background: var(--s1); border: 1px solid var(--line); border-radius: 6px; padding: 2px 7px; white-space: nowrap; }
+kbd { font: 11px "Segoe UI", system-ui, sans-serif; color: var(--dim); background: var(--s1); border: 1px solid var(--line); border-radius: 6px; padding: 2px 7px; white-space: nowrap; }
 #cmdList .item .ic { background: none; color: var(--fg); }
 .cmd-hint { color: var(--faint); font-size: 12px; text-align: center; margin-top: 10px; }

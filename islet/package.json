@@ -2,11 +2,13 @@
   "name": "islet",
   "productName": "Islet",
   "version": "0.1.2",
-  "description": "Островок: динамический остров для Windows",
+  "description": "Островок: динамический остров для Windows и macOS",
   "main": "main.js",
   "private": true,
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "prestart": "node scripts/build-helper.js",
+    "dist:mac": "node scripts/build-helper.js && electron-builder --mac"
   },
   "dependencies": {
     "jsqr": "1.4.0",
@@ -14,6 +16,44 @@
     "qrcode-generator": "^2.0.4"
   },
   "devDependencies": {
-    "electron": "44.9.0"
-  }
+    "electron": "44.9.0",
+    "electron-builder": "26.0.12"
+  },
+  "build": {
+    "appId": "com.playbackg.islet",
+    "productName": "Islet",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "!mac/*.swift",
+      "!start.bat",
+      "!helper.ps1",
+      "!native.js",
+      "!scripts/build-helper.js",
+      "!scripts/adhoc-sign.js"
+    ],
+    "asarUnpack": [
+      "mac/helper.dylib",
+      "node_modules/koffi/**",
+      "node_modules/@koromix/**"
+    ],
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.utilities",
+      "identity": null,
+      "extendInfo": {
+        "LSUIElement": true,
+        "NSBluetoothAlwaysUsageDescription": "Переключатель Bluetooth на острове",
+        "NSMicrophoneUsageDescription": "Голосовой ввод и чат",
+        "NSAudioCaptureUsageDescription": "Звук системы в записи экрана",
+        "NSAppleEventsUsageDescription": "Смена темы и выключение компьютера"
+      }
+    },
+    "afterSign": "scripts/adhoc-sign.js"
+  },
+  "author": "PlaybackG"
 }

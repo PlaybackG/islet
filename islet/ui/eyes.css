@@ -30,7 +30,7 @@
 .eyes.ring .eye { background: transparent; border: var(--rw) solid var(--ec); box-shadow: var(--gl) 0 0 6px 1px, inset var(--gl) 0 0 4px 0; }
 .eyes.glyph .eye { background: transparent; box-shadow: none; display: grid; place-items: center; }
 .eyes.glyph .eye::before {
-  content: attr(data-g); font: 700 var(--fs, 14px)/1 Consolas, "Cascadia Mono", "Segoe UI Symbol", "Nirmala UI", "Yu Gothic UI", monospace;
+  content: attr(data-g); font: 700 var(--fs, 14px)/1 Consolas, Menlo, "Cascadia Mono", "Segoe UI Symbol", "Nirmala UI", "Yu Gothic UI", monospace;
   color: var(--ec); text-shadow: 0 0 4px var(--gl), 0 0 10px var(--gl2);
 }
 .eyes.pupil .eye { overflow: hidden; }

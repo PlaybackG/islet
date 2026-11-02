@@ -93,7 +93,7 @@ function releaseModifiers() {
   }
 }
 
-function sendCtrlV() {
+function sendPaste() {
   releaseModifiers();
   keybd_event(VK.CONTROL, 0, 0, 0);
   keybd_event(VK.V, 0, 0, 0);
@@ -277,7 +277,7 @@ function setRegDword(sub, name, v) {
 }
 
 module.exports = {
-  foreground, focusWindow, sendCtrlV, capsLock, keyboardLayout,
+  foreground, focusWindow, sendPaste, capsLock, keyboardLayout,
   clipboardSeq, clipboardIsPrivate, clipboardHasFiles, windowRect, isMaximized, className, processName, handleOf, toolWindow,
   idleMs, battery, mouseDown, audioPeak, fileDragging, regDword, setRegDword,
 };

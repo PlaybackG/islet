@@ -94,14 +94,14 @@ function bindFields() {
 
 // ---------- Звук таймера ----------
 
-const fileUrl = (p) => 'file:///' + encodeURI(String(p).replace(/\\/g, '/')).replace(/#/g, '%23').replace(/\?/g, '%3F');
+const fileUrl = (p) => 'file:///' + encodeURI(String(p).replace(/\\/g, '/').replace(/^\/+/, '')).replace(/#/g, '%23').replace(/\?/g, '%3F');
 const baseName = (p) => String(p).split(/[\\/]/).pop().replace(/\.wav$/i, '');
 let sounds = [];
 function paintSounds() {
   const cur = S.alertSound || 'beep';
   const known = cur === 'beep' || cur === 'none' || sounds.some((s) => s.path === cur);
   $('#sndSel').innerHTML = '<option value="beep">Короткий сигнал</option><option value="none">Без звука</option>'
-    + (sounds.length ? '<optgroup label="Звуки Windows">' + sounds.map((s) => `<option value="${esc(s.path)}">${esc(s.name)}</option>`).join('') + '</optgroup>' : '')
+    + (sounds.length ? '<optgroup label="Системные звуки">' + sounds.map((s) => `<option value="${esc(s.path)}">${esc(s.name)}</option>`).join('') + '</optgroup>' : '')
     + (known ? '' : `<option value="${esc(cur)}">Свой: ${esc(baseName(cur))}</option>`)
     + '<option value="__pick">Свой WAV…</option>';
   $('#sndSel').value = cur;

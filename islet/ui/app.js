@@ -135,16 +135,16 @@ const hitNow = () => (isTucked() ? HIT_NONE : hitCur);
 
 const ctx = document.createElement('canvas').getContext('2d');
 function textWidth(text, sub) {
-  ctx.font = '500 13px "Segoe UI Variable Text", "Segoe UI", sans-serif';
+  ctx.font = '500 13px "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif';
   let w = ctx.measureText(text).width;
-  if (sub) { ctx.font = '400 13px "Segoe UI Variable Text", "Segoe UI", sans-serif'; w += 6 + ctx.measureText(sub).width; }
+  if (sub) { ctx.font = '400 13px "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif'; w += 6 + ctx.measureText(sub).width; }
   return Math.ceil(w);
 }
 // Большая карточка: заголовок 600 14px, подпись 400 13px на отдельной строке.
 function bigWidth(title, sub) {
-  ctx.font = '600 14px "Segoe UI Variable Text", "Segoe UI", sans-serif';
+  ctx.font = '600 14px "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif';
   const a = ctx.measureText(title || '').width;
-  ctx.font = '400 13px "Segoe UI Variable Text", "Segoe UI", sans-serif';
+  ctx.font = '400 13px "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif';
   return Math.ceil(Math.max(a, ctx.measureText(sub || '').width));
 }
 
@@ -202,7 +202,8 @@ const Pill = {
   sides() {
     const p = App.settings.pill || {};
     let left = '', right = '', lw = 0, rw = 0;
-    if (p.clock !== false) {
+    // С чёлкой левое крыло занимают глазки, а часы и так есть в строке меню.
+    if (p.clock !== false && !App.settings.notch) {
       const t = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
       left = `<span class="badge pill-t">${t}</span>`; lw = textWidth(t) + 4;
     }
@@ -312,9 +313,22 @@ function panelEdge() {
   setEdge(live ? 'var(--cover)' : null, live ? 4.5 : 2.4, live);
 }
 
+// Чёлка MacBook: посередине капсулы нет пикселей. Капсула обнимает вырез, содержимое на крыльях,
+// а текст карточек спускается под него.
+function notchFit(m) {
+  const n = App.settings.notch, c = isl.classList;
+  c.toggle('notch', !!n);
+  c.toggle('drop', !!n && !!m.text);
+  if (!n) return m;
+  isl.style.setProperty('--nw', n.w + 'px');
+  isl.style.setProperty('--nh', n.h + 'px');
+  if (m.text) return { ...m, w: Math.max(m.w, n.w + 40), h: (m.h || 34) + n.h, r: m.r ?? 22 };
+  return { ...m, w: n.w + 2 * (m.idle || m.music ? 116 : 130), h: n.h, r: 14 };
+}
+
 function render() {
   if (App.expanded) return;
-  const m = model();
+  const m = notchFit(model());
   setSize(m.w, m.h || 34, m.r);
   setEdge(m.edge, m.live ? 4 : m.big ? 1.6 : 1.4, !!m.live);
   if (setHTML(cLeft, m.left || '') && m.art) { const a = $('.art', cLeft); if (a) a.style.backgroundImage = `url("${m.art}")`; }
@@ -624,7 +638,7 @@ function showTab(tab, opts = {}) {
   isl.classList.toggle('cmd-mode', tab === 'command');
   $$('.view').forEach((v) => v.classList.toggle('on', v.dataset.view === tab));
   renderTabs();
-  setSize(PANEL_W, PANEL_H[tab] || 400, 30);
+  setSize(PANEL_W, (PANEL_H[tab] || 400) + (App.settings.notch?.h || 0), 30);
   panelEdge();
   Views[tab]?.enter?.(opts);
 }

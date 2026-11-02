@@ -1,7 +1,7 @@
-// Islet — динамический остров для Windows. Главный процесс.
+// Islet — динамический остров для Windows и macOS. Главный процесс.
 const {
   app, BrowserWindow, ipcMain, screen, clipboard, ClipboardItem, nativeImage, globalShortcut, Tray, Menu,
-  shell, desktopCapturer, session, safeStorage, Notification, dialog,
+  shell, desktopCapturer, session, safeStorage, Notification, dialog, systemPreferences,
 } = require('electron');
 const fs = require('fs');
 const os = require('os');
@@ -12,7 +12,8 @@ const { spawn } = require('child_process');
 // «Islet.exe --quit» (так зовёт деинсталлятор) закрывает уже запущенный остров и сам не стартует.
 if (!app.requestSingleInstanceLock() || process.argv.includes('--quit')) { app.quit(); process.exit(0); }
 
-const native = require('./native');
+const MAC = process.platform === 'darwin';
+const native = require(MAC ? './native.mac' : './native');
 const helper = require('./helper');
 const Store = require('./store');
 const services = require('./services');
@@ -20,7 +21,10 @@ const agents = require('./agents');
 const parse = require('./parse');
 const { trayIcon } = require('./icon');
 
-app.setAppUserModelId('Islet');
+if (MAC) {
+  app.setActivationPolicy('accessory'); // без значка в Доке
+  app.commandLine.appendSwitch('enable-features', 'MacLoopbackAudioForScreenShare'); // звук системы в записи экрана
+} else app.setAppUserModelId('Islet');
 
 const DATA = app.getPath('userData');
 const CLIPS_DIR = path.join(DATA, 'clips');
@@ -59,14 +63,15 @@ const DEFAULTS = {
   weather: { city: 'Москва', lat: 55.7558, lon: 37.6173 },
   clip: {
     max: 200,
-    exclude: ['keepass.exe', 'keepassxc.exe', '1password.exe', 'bitwarden.exe', 'lastpass.exe', 'enpass.exe'],
+    exclude: MAC ? ['keepassxc', '1password', 'bitwarden', 'lastpass', 'enpass', 'keychain access', 'passwords']
+      : ['keepass.exe', 'keepassxc.exe', '1password.exe', 'bitwarden.exe', 'lastpass.exe', 'enpass.exe'],
   },
   eyes: { enabled: true, dozeMin: 3, follow: true, style: 'nusa', shuffle: 0 },
   hideFullscreen: true,
   autostart: false,
   watchDownloads: true,
   winNotifs: true,
-  hideWinBanners: true,
+  hideWinBanners: !MAC, // на macOS чужие баннеры не отключить
   indicators: { caps: true, layout: true, battery: true, vpn: true, volume: true, brightness: true },
   hoverOpen: true,
   autoHide: false,
@@ -104,7 +109,10 @@ const reminders = new Store(DATA, 'reminders', []);
 const notifs = new Store(DATA, 'notifs', []);
 const appIcons = new Store(DATA, 'appicons', {});
 const WIN = process.env.SystemRoot || 'C:\\Windows';
-const dock = new Store(DATA, 'dock', [
+const dock = new Store(DATA, 'dock', MAC ? [
+  '/System/Library/CoreServices/Finder.app', '/System/Volumes/Preboot/Cryptexes/App/System/Applications/Safari.app', '/System/Applications/Notes.app',
+  '/System/Applications/Utilities/Terminal.app', '/System/Applications/System Settings.app',
+] : [
   path.join(WIN, 'explorer.exe'), path.join(WIN, 'System32', 'notepad.exe'),
   path.join(WIN, 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe'),
   path.join(WIN, 'System32', 'control.exe'), path.join(WIN, 'System32', 'Taskmgr.exe'),
@@ -130,7 +138,7 @@ const clip = {
   writeImage: (img) => clipboard.write([new ClipboardItem({ 'image/png': new Blob([img.toPNG()], { type: 'image/png' }) })]),
 };
 
-// ---------- Ключи: шифруются средствами Windows ----------
+// ---------- Ключи: шифруются средствами системы ----------
 
 function encrypt(s) {
   if (!s) return '';
@@ -196,16 +204,30 @@ function islandDisplay() {
 function followCursorDisplay() {
   if (S.display !== 'cursor' || interactive) return;
   const id = screen.getDisplayNearestPoint(screen.getCursorScreenPoint()).id;
-  if (id !== cursorDisplayId) { cursorDisplayId = id; updateDisplayRect(); placeIsland(); }
+  if (id !== cursorDisplayId) { cursorDisplayId = id; updateDisplayRect(); placeIsland(); send('settings', publicSettings()); }
 }
 
 // Масштаб острова: окно растёт вместе с zoom страницы, CSS-размеры внутри остаются прежними.
 const zoom = () => Math.max(0.7, Math.min(1.4, (+S.islandScale || 100) / 100));
 
+// Чёлка MacBook на мониторе острова, в единицах интерфейса: { w, h } или null.
+let notches = [];
+function notchNow() {
+  const n = notches.find((x) => x.id === islandDisplay().id);
+  return n ? { w: Math.ceil(n.w / zoom()), h: Math.ceil(n.h / zoom()) } : null;
+}
+async function loadNotches() {
+  if (!MAC) return;
+  notches = await helper.call('notch', {}, 3000).catch(() => []);
+  placeIsland();
+  send('settings', publicSettings());
+}
+
 function placeIsland() {
   if (!island || island.isDestroyed()) return;
   const b = islandDisplay().bounds, z = zoom();
-  const w = Math.round(W * z), off = Math.max(-b.width / 2 + w / 2, Math.min(b.width / 2 - w / 2, +S.islandOffset || 0));
+  // С чёлкой остров стоит ровно на ней: сдвиг из настроек оставил бы вырез посреди содержимого.
+  const w = Math.round(W * z), off = notchNow() ? 0 : Math.max(-b.width / 2 + w / 2, Math.min(b.width / 2 - w / 2, +S.islandOffset || 0));
   island.setBounds({ x: Math.round(b.x + (b.width - w) / 2 + off), y: b.y, width: w, height: Math.round(islandH * z) });
 }
 
@@ -231,17 +253,24 @@ function recreateIsland(why) {
   }, 500);
 }
 
+// macOS: окно видно на всех рабочих столах и поверх приложений в полном экране.
+function onAllSpaces(w) {
+  if (MAC) w.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true, skipTransformProcessType: true });
+}
+
 function createIsland() {
   island = new BrowserWindow({
     width: W, height: H, frame: false, transparent: true, resizable: false, movable: false,
     minimizable: false, maximizable: false, fullscreenable: false, skipTaskbar: true,
     focusable: false, show: false, hasShadow: false, alwaysOnTop: true, backgroundColor: '#00000000',
+    ...(MAC && { type: 'panel', enableLargerThanScreen: true, roundedCorners: false }), // панель принимает ввод, не активируя приложение
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'), contextIsolation: true, sandbox: true,
       backgroundThrottling: false, spellcheck: false,
     },
   });
   island.setAlwaysOnTop(true, 'screen-saver');
+  onAllSpaces(island);
   island.setContentProtection(!process.env.ISLET_CAPTURABLE); // остров не попадает на скриншоты и записи
   island.setIgnoreMouseEvents(true, { forward: true });
   placeIsland();
@@ -273,12 +302,14 @@ function createOverlay() {
   overlay = new BrowserWindow({
     frame: false, show: false, resizable: false, movable: false, skipTaskbar: true, fullscreenable: false,
     alwaysOnTop: true, hasShadow: false, enableLargerThanScreen: true, backgroundColor: '#000000',
+    ...(MAC && { type: 'panel' }),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'), contextIsolation: true, sandbox: true,
       backgroundThrottling: false, spellcheck: false,
     },
   });
   overlay.setAlwaysOnTop(true, 'screen-saver');
+  onAllSpaces(overlay);
   overlay.loadFile(path.join(__dirname, 'ui', 'overlay.html'));
   overlayHwnd = native.handleOf(overlay);
   native.toolWindow(overlayHwnd);
@@ -307,7 +338,7 @@ function openSettings(section, again) {
   });
   if (wizard) setTimeout(() => { if (!w.isDestroyed() && !w.isVisible()) w.show(); }, 2000);
   w.wizard = wizard;
-  w.removeMenu(); // иначе Alt в поле горячих клавиш открывает меню
+  if (!MAC) w.removeMenu(); // иначе Alt в поле горячих клавиш открывает меню
   w.loadFile(path.join(__dirname, 'ui', 'settings.html'), { hash: section || '', search: again ? 'again' : '' });
   settingsHwnd = native.handleOf(w);
   w.on('closed', () => { if (settingsWin === w) { settingsWin = null; settingsHwnd = 0n; } });
@@ -339,7 +370,7 @@ function setFrozen(on) {
 let displayPhys = null;
 function updateDisplayRect() {
   const d = islandDisplay();
-  displayPhys = screen.dipToScreenRect(null, d.bounds);
+  displayPhys = MAC ? d.bounds : screen.dipToScreenRect(null, d.bounds);
 }
 
 const DESKTOP_CLASSES = new Set(['Progman', 'WorkerW', 'Shell_TrayWnd', 'Shell_SecondaryTrayWnd']);
@@ -368,7 +399,7 @@ function ours(hwnd) {
 // Списки приложений: в hideApps остров прячется, в showApps не уезжает при автоскрытии.
 let fgHideApp = false, fgShowApp = false;
 const exeList = (a) => (Array.isArray(a) ? a : String(a || '').split(/[,;\n]/)).map((s) => s.trim().toLowerCase()).filter(Boolean)
-  .map((s) => (s.endsWith('.exe') ? s : s + '.exe'));
+  .map((s) => (MAC || s.endsWith('.exe') ? s : s + '.exe'));
 function checkFgApp(fg) {
   const hide = exeList(S.hideApps), show = exeList(S.showApps);
   let h = false, s = false;
@@ -390,6 +421,11 @@ function pollForeground() {
     const fs2 = isFullscreen(fg);
     if (fs2 !== fsActive) { fsActive = fs2; applyVisibility(); setFrozen(fs2); }
     if (!fsActive && island?.isVisible() && !ours(fg)) island.moveTop();
+  }
+  // На Mac полный экран включают зелёной кнопкой, активное приложение при этом не меняется.
+  if (MAC && !fgChanged && fgTick % 7 === 0) {
+    const fs2 = isFullscreen(fg);
+    if (fs2 !== fsActive) { fsActive = fs2; applyVisibility(); setFrozen(fs2); }
   }
   const c = native.capsLock();
   if (caps !== null && c !== caps && S.indicators.caps && !fsActive) send('indicator', { kind: 'caps', on: c });
@@ -619,7 +655,9 @@ async function pasteToPrevious() {
   releaseIsland(false);
   if (lastExternal) native.focusWindow(lastExternal);
   await sleep(70);
-  native.sendCtrlV();
+  // Вставке нужен «Универсальный доступ»; без него система покажет запрос, а текст останется в буфере.
+  if (MAC && !systemPreferences.isTrustedAccessibilityClient(true)) { send('toast', { text: 'Разреши Islet в «Универсальном доступе», текст уже в буфере' }); return; }
+  native.sendPaste();
 }
 
 function openPanel(tab, focus, extra) {
@@ -710,7 +748,8 @@ function checkReminders() {
 // Центр уведомлений хранит всё в SQLite-базе пользователя. Читаем её только на чтение
 // и показываем новые всплывашки в острове. Свои уведомления Islet пропускаем — их остров уже показал.
 
-const WPN_DB = path.join(process.env.LOCALAPPDATA || '', 'Microsoft', 'Windows', 'Notifications', 'wpndatabase.db');
+const WPN_DB = MAC ? path.join(os.homedir(), 'Library/Group Containers/group.com.apple.usernoted/db2/db')
+  : path.join(process.env.LOCALAPPDATA || '', 'Microsoft', 'Windows', 'Notifications', 'wpndatabase.db');
 let wpn = null, wpnNew = null, wpnLast = -1, wpnTimer = 0, wpnWatch = null, wpnDeb = 0;
 
 const xmlText = (s) => s.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').replace(/<[^>]+>/g, '')
@@ -789,11 +828,22 @@ function addNotif(aumid, n) {
 }
 
 function openNotifApp(aumid) {
+  if (MAC) { if (aumid) spawn('open', ['-b', aumid], { detached: true, stdio: 'ignore' }).unref(); return; }
   if (aumid && !/^Windows\.SystemToast\./i.test(aumid)) spawn('explorer.exe', ['shell:AppsFolder\\' + aumid], { detached: true, stdio: 'ignore' }).unref();
+}
+
+// macOS: разбор базы в хелпере, там записи лежат в бинарных plist. Без «Полного доступа к диску» она закрыта.
+async function pollMacNotifs() {
+  try {
+    const r = await helper.call('notifs.get', { after: wpnLast }, 5000);
+    for (const n of r.items) if (n.app !== 'com.playbackg.islet') addNotif(n.app, n);
+    wpnLast = r.last;
+  } catch {}
 }
 
 function pollWinNotifs() {
   if (!S.winNotifs) return;
+  if (MAC) { pollMacNotifs(); return; }
   try {
     if (!wpn) {
       const { DatabaseSync } = require('node:sqlite');
@@ -858,9 +908,10 @@ function watchWinNotifs() {
   clearInterval(wpnTimer);
   wpnWatch?.close(); wpnWatch = null;
   wpnLast = -1;
-  if (!S.winNotifs || !S.hideWinBanners) restoreBanners();
+  if (!MAC && (!S.winNotifs || !S.hideWinBanners)) restoreBanners();
   if (!S.winNotifs) { try { wpn?.close(); } catch {} wpn = null; return; }
   pollWinNotifs();
+  if (MAC) { wpnTimer = setInterval(pollWinNotifs, 2000); return; }
   // Каждое новое уведомление пишется в файлы базы — просыпаемся по их изменению, а не крутим опрос.
   try {
     wpnWatch = fs.watch(path.dirname(WPN_DB), () => { clearTimeout(wpnDeb); wpnDeb = setTimeout(pollWinNotifs, 150); });
@@ -938,22 +989,25 @@ function watchDownloads() {
 // там есть total_bytes. Файл истории браузер держит открытым, поэтому читаем его копию.
 function historyFiles() {
   const out = [];
-  const roots = ['Google\\Chrome', 'Microsoft\\Edge', 'Yandex\\YandexBrowser', 'BraveSoftware\\Brave-Browser', 'Vivaldi', 'Chromium']
-    .map((b) => path.join(process.env.LOCALAPPDATA || '', b, 'User Data'));
+  const support = app.getPath('appData');
+  const roots = MAC ? ['Google/Chrome', 'Microsoft Edge', 'Yandex/YandexBrowser', 'BraveSoftware/Brave-Browser', 'Vivaldi', 'Chromium'].map((b) => path.join(support, b))
+    : ['Google\\Chrome', 'Microsoft\\Edge', 'Yandex\\YandexBrowser', 'BraveSoftware\\Brave-Browser', 'Vivaldi', 'Chromium']
+      .map((b) => path.join(process.env.LOCALAPPDATA || '', b, 'User Data'));
   for (const root of roots) {
     let names;
     try { names = fs.readdirSync(root); } catch { continue; }
     for (const n of names) if (n === 'Default' || /^Profile \d+$/.test(n)) out.push(path.join(root, n, 'History'));
   }
-  for (const o of ['Opera Stable', 'Opera GX Stable']) out.push(path.join(process.env.APPDATA || '', 'Opera Software', o, 'History'));
+  if (MAC) out.push(path.join(support, 'com.operasoftware.Opera', 'History'));
+  else for (const o of ['Opera Stable', 'Opera GX Stable']) out.push(path.join(process.env.APPDATA || '', 'Opera Software', o, 'History'));
   return out;
 }
 
 // Firefox и Zen размер на диск не пишут, но адрес загрузки кладут в places.sqlite сразу при старте.
 function firefoxPlaces() {
   const out = [];
-  for (const root of ['Mozilla\\Firefox\\Profiles', 'zen\\Profiles']) {
-    const dir = path.join(process.env.APPDATA || '', root);
+  for (const root of MAC ? ['Firefox/Profiles', 'zen/Profiles'] : ['Mozilla\\Firefox\\Profiles', 'zen\\Profiles']) {
+    const dir = path.join(MAC ? app.getPath('appData') : process.env.APPDATA || '', root);
     let names;
     try { names = fs.readdirSync(dir); } catch { continue; }
     for (const n of names) out.push(path.join(dir, n, 'places.sqlite'));
@@ -1084,6 +1138,7 @@ function run(cmd, args, ms = 30000) {
   });
 }
 function vpnProfiles() {
+  if (MAC) return [];
   const files = [
     path.join(app.getPath('appData'), 'Microsoft', 'Network', 'Connections', 'Pbk', 'rasphone.pbk'),
     path.join(process.env.ProgramData || 'C:\\ProgramData', 'Microsoft', 'Network', 'Connections', 'Pbk', 'rasphone.pbk'),
@@ -1101,7 +1156,19 @@ function vpnProfilesCache() {
   if (Date.now() - vpnPbk.t > 60e3) vpnPbk = { t: Date.now(), list: vpnProfiles() };
   return vpnPbk.list;
 }
+// macOS: VPN из системных настроек управляются через scutil.
+async function vpnToggleMac() {
+  const { out } = await run('/usr/sbin/scutil', ['--nc', 'list']);
+  const list = [...out.matchAll(/\((\w+)\).*?"(.+?)"/g)].map((m) => ({ state: m[1], name: m[2] }));
+  if (!list.length) { shell.openExternal('x-apple.systempreferences:com.apple.NetworkExtensionSettingsUI.NESettingsUIExtension'); return { ok: false, opened: true }; }
+  const cur = list.find((v) => v.state === 'Connected');
+  const r = await run('/usr/sbin/scutil', ['--nc', cur ? 'stop' : 'start', (cur || list[0]).name], 15000);
+  setTimeout(pollNet, 800); setTimeout(pollNet, 3000);
+  return { ok: r.code === 0, on: !cur, name: (cur || list[0]).name, error: r.code === 0 ? '' : r.out.trim() };
+}
+
 async function vpnToggle() {
+  if (MAC) return vpnToggleMac();
   const profiles = vpnProfiles();
   if (!profiles.length) { shell.openExternal('ms-settings:network-vpn'); return { ok: false, opened: true }; }
   // Подключённый профиль виден как сетевой интерфейс с тем же именем (вывод rasdial — в OEM-кодировке).
@@ -1136,13 +1203,16 @@ async function vpnInfo(name) {
 
 function pollNet() {
   if (fsActive) return;
-  const names = Object.keys(os.networkInterfaces());
-  const on = names.some((n) => VPN_RE.test(n));
+  const nets = os.networkInterfaces();
+  // На Mac utun есть всегда (iCloud и т. п.), у настоящего туннеля есть IPv4-адрес.
+  const names = MAC ? Object.keys(nets).filter((n) => /^(utun|ipsec|ppp|tun|tap)\d/.test(n) && nets[n].some((a) => a.family === 'IPv4'))
+    : Object.keys(nets);
+  const on = MAC ? names.length > 0 : names.some((n) => VPN_RE.test(n));
   const on2 = on || vpnProfilesCache().some((p) => names.includes(p));
   if (on2 !== vpnOn) {
     const first = vpnOn === null;
     vpnOn = on2; send('vpn', on2);
-    if (on2 && !first) vpnInfo(names.find((n) => VPN_RE.test(n)) || vpnProfilesCache().find((p) => names.includes(p)));
+    if (on2 && !first) vpnInfo(names.find((n) => MAC || VPN_RE.test(n)) || vpnProfilesCache().find((p) => names.includes(p)));
   }
   const b = native.battery();
   if (JSON.stringify(b) !== JSON.stringify(batteryState)) {
@@ -1205,6 +1275,11 @@ let capture = null;
 
 async function startCapture(mode) {
   if (capture) return;
+  if (MAC && systemPreferences.getMediaAccessStatus('screen') !== 'granted') {
+    send('toast', { text: 'Разреши Islet запись экрана в Системных настройках', error: true });
+    shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture');
+    return;
+  }
   const pt = screen.getCursorScreenPoint();
   const d = screen.getDisplayNearestPoint(pt);
   const size = { width: Math.round(d.size.width * d.scaleFactor), height: Math.round(d.size.height * d.scaleFactor) };
@@ -1491,8 +1566,8 @@ const ACTIONS = [
   { id: 'mic', toggle: true, title: 'Микрофон', icon: 'mic', words: 'микрофон mic звук' },
   { id: 'WiFi', toggle: true, title: 'Wi-Fi', icon: 'wifi', words: 'wifi wi-fi вайфай сеть интернет' },
   { id: 'Bluetooth', toggle: true, title: 'Bluetooth', icon: 'bt', words: 'bluetooth блютуз bt' },
-  { id: 'theme', title: 'Сменить тему Windows', sub: 'Светлая ↔ тёмная', icon: 'contrast', words: 'тема тёмная темная светлая theme' },
-  { id: 'lock', title: 'Заблокировать компьютер', sub: 'Win + L', icon: 'lock', words: 'блокировка заблокировать lock' },
+  { id: 'theme', title: MAC ? 'Сменить тему' : 'Сменить тему Windows', sub: 'Светлая ↔ тёмная', icon: 'contrast', words: 'тема тёмная темная светлая theme' },
+  { id: 'lock', title: 'Заблокировать компьютер', sub: MAC ? '⌃⌘Q' : 'Win + L', icon: 'lock', words: 'блокировка заблокировать lock' },
   { id: 'settings', title: 'Настройки Islet', sub: 'Открыть окно настроек', icon: 'gear', words: 'настройки settings параметры islet' },
 ];
 const TOGGLE_WORDS = 'вкл включить выкл выключить переключить';
@@ -1522,6 +1597,11 @@ async function actionHits(s) {
   return out;
 }
 
+function lockScreen() {
+  if (MAC) return helper.call('lock', {}, 3000).catch(() => {});
+  spawn('rundll32.exe', ['user32.dll,LockWorkStation'], { detached: true, stdio: 'ignore' }).unref();
+}
+
 async function runAction(r) {
   const say = (text, error) => send('toast', { text, error });
   switch (r.id) {
@@ -1532,7 +1612,7 @@ async function runAction(r) {
       catch (e) { say('Не получилось: ' + e.message, true); }
       break;
     case 'theme': helper.call('theme', { toggle: true }, 5000).catch(() => {}); break;
-    case 'lock': spawn('rundll32.exe', ['user32.dll,LockWorkStation'], { detached: true, stdio: 'ignore' }).unref(); break;
+    case 'lock': lockScreen(); break;
     case 'settings': openSettings(); break;
   }
 }
@@ -1560,7 +1640,9 @@ async function commandRun(r) {
     case 'url': shell.openExternal(r.url); break;
     case 'web': shell.openExternal(searchUrl(r.q || r.sub)); break;
     case 'act': runAction(r); break;
-    case 'app': spawn('explorer.exe', ['shell:AppsFolder\\' + r.id], { detached: true, stdio: 'ignore' }).unref(); break;
+    case 'app':
+      if (MAC) { shell.openPath(r.id); break; }
+      spawn('explorer.exe', ['shell:AppsFolder\\' + r.id], { detached: true, stdio: 'ignore' }).unref(); break;
   }
 }
 
@@ -1584,10 +1666,10 @@ function searchUrl(q) {
 
 // Звуки Windows для таймера и напоминаний.
 function windowsSounds() {
-  const dir = path.join(WIN, 'Media');
+  const dir = MAC ? '/System/Library/Sounds' : path.join(WIN, 'Media');
   try {
-    return fs.readdirSync(dir).filter((f) => /\.wav$/i.test(f)).sort((a, b) => a.localeCompare(b))
-      .map((f) => ({ name: f.replace(/\.wav$/i, ''), path: path.join(dir, f) }));
+    return fs.readdirSync(dir).filter((f) => /\.(wav|aiff)$/i.test(f)).sort((a, b) => a.localeCompare(b))
+      .map((f) => ({ name: f.replace(/\.(wav|aiff)$/i, ''), path: path.join(dir, f) }));
   } catch { return []; }
 }
 
@@ -1597,7 +1679,7 @@ function publicSettings() {
   return {
     ...S,
     ai: { ...S.ai, key: '', sttKey: '', hasKey: !!S.ai.key, hasSttKey: !!S.ai.sttKey },
-    hotkeyErrors, hotkeysActive,
+    hotkeyErrors, hotkeysActive, notch: notchNow(),
     displays: screen.getAllDisplays().map((d, i) => ({ id: d.id, name: `${d.label || 'Монитор ' + (i + 1)} · ${d.size.width}×${d.size.height}${d.id === screen.getPrimaryDisplay().id ? ' (основной)' : ''}` })),
     version: app.getVersion(),
   };
@@ -1719,17 +1801,19 @@ function registerIpc() {
   });
   // док приложений на «Главной»
   const dockIcons = new Map();
+  // На macOS size: 'large' роняет Electron, а 32 px в доке мыльно: большую иконку рисует хелпер.
+  const bigIcon = async (p) => (MAC ? helper.call('appicon', { id: p }, 8000) : (await app.getFileIcon(p, { size: 'large' })).toDataURL());
   async function dockItems() {
     return Promise.all(dock.data.map(async (p) => {
       if (!dockIcons.has(p)) {
-        try { dockIcons.set(p, (await app.getFileIcon(p, { size: 'large' })).toDataURL()); } catch { dockIcons.set(p, ''); }
+        try { dockIcons.set(p, await bigIcon(p)); } catch { dockIcons.set(p, ''); }
       }
-      return { path: p, name: path.basename(p).replace(/\.(exe|lnk|url)$/i, ''), icon: dockIcons.get(p) };
+      return { path: p, name: path.basename(p).replace(/\.(exe|lnk|url|app)$/i, ''), icon: dockIcons.get(p) };
     }));
   }
   const iconOf = async (p) => {
     if (!dockIcons.has(p)) {
-      try { dockIcons.set(p, (await app.getFileIcon(p, { size: 'large' })).toDataURL()); } catch { dockIcons.set(p, ''); }
+      try { dockIcons.set(p, await bigIcon(p)); } catch { dockIcons.set(p, ''); }
     }
     return dockIcons.get(p);
   };
@@ -1751,6 +1835,10 @@ function registerIpc() {
   }
   // Всё, что есть в меню «Пуск», самые запускаемые сверху.
   async function startApps() {
+    if (MAC) {
+      const list = [...apps].sort((a, b) => a.name.localeCompare(b.name, 'ru'));
+      return Promise.all(list.map(async (a) => ({ path: a.id, name: a.name, icon: await iconOf(a.id), added: dock.data.includes(a.id) })));
+    }
     const skip = /uninstall|unins\d|удал|справк|help|readme|manual|documentation|website|license|лиценз/i;
     const found = new Map();
     const walk = async (dir, depth) => {
@@ -1777,7 +1865,7 @@ function registerIpc() {
       releaseIsland(false);
       const r = await dialog.showOpenDialog({
         title: 'Добавить в док', properties: ['openFile', 'multiSelections'],
-        filters: [{ name: 'Приложения и ярлыки', extensions: ['exe', 'lnk', 'url', 'bat', 'cmd'] }, { name: 'Все файлы', extensions: ['*'] }],
+        filters: [{ name: 'Приложения и ярлыки', extensions: MAC ? ['app'] : ['exe', 'lnk', 'url', 'bat', 'cmd'] }, { name: 'Все файлы', extensions: ['*'] }],
       });
       paths = r.canceled ? [] : r.filePaths;
     }
@@ -1791,7 +1879,7 @@ function registerIpc() {
   // Карандаш на карточке скриншота: сразу в редактор (Paint), как у Island.
   handle('edit-image', (p) => {
     if (!/\.(png|jpe?g|bmp|gif)$/i.test(p) || !fs.existsSync(p)) return false;
-    const c = spawn('mspaint.exe', [p], { detached: true, stdio: 'ignore', windowsHide: false });
+    const c = spawn(MAC ? 'open' : 'mspaint.exe', MAC ? ['-a', 'Preview', p] : [p], { detached: true, stdio: 'ignore', windowsHide: false });
     c.on('error', () => shell.openPath(p));
     c.unref();
     return true;
@@ -1829,9 +1917,10 @@ function registerIpc() {
   handle('radios-get', () => helper.call('radios.get', {}, 8000).catch(() => []));
   handle('radios-set', (kind, on) => helper.call('radios.set', { kind, on }, 8000));
   handle('net-get', () => helper.call('net.get', {}, 8000).catch(() => ({})));
-  handle('lock', () => spawn('rundll32.exe', ['user32.dll,LockWorkStation'], { detached: true, stdio: 'ignore' }).unref());
+  handle('lock', lockScreen);
   handle('power', (kind) => {
-    const cmd = {
+    const sys = (s) => ['/usr/bin/osascript', ['-e', `tell application "System Events" to ${s}`]];
+    const cmd = MAC ? { sleep: ['/usr/bin/pmset', ['sleepnow']], restart: sys('restart'), shutdown: sys('shut down') }[kind] : {
       sleep: ['rundll32.exe', ['powrprof.dll,SetSuspendState', '0,1,0']],
       restart: ['shutdown.exe', ['/r', '/t', '0']],
       shutdown: ['shutdown.exe', ['/s', '/t', '0']],
@@ -1862,6 +1951,7 @@ function registerIpc() {
   handle('agent-login', async () => {
     const bin = (await agents.detect(false)).bins.claude;
     if (!bin) throw new Error('Claude Code не установлен');
+    if (MAC) { spawn('open', ['-a', 'Terminal', bin], { detached: true, stdio: 'ignore' }).unref(); return; }
     spawn('cmd.exe', ['/k', `"${bin}"`], { cwd: os.homedir(), detached: true, stdio: 'ignore', windowsHide: false, windowsVerbatimArguments: true }).unref();
   });
   handle('ai-stop', (id) => agents.stop(id) || services.aiStop(id));
@@ -1881,7 +1971,7 @@ function registerIpc() {
   handle('sounds-list', () => windowsSounds());
   handle('pick-sound', async () => {
     const r = await dialog.showOpenDialog(settingsWin && !settingsWin.isDestroyed() ? settingsWin : undefined, {
-      title: 'Звук для таймера и напоминаний', filters: [{ name: 'WAV', extensions: ['wav'] }], properties: ['openFile'],
+      title: 'Звук для таймера и напоминаний', filters: [{ name: 'Звук', extensions: ['wav', 'aiff', 'mp3'] }], properties: ['openFile'],
     });
     return r.canceled ? '' : r.filePaths[0] || '';
   });
@@ -2003,7 +2093,9 @@ function registerIpc() {
 // ---------- Трей ----------
 
 function createTray() {
-  tray = new Tray(nativeImage.createFromBuffer(trayIcon(32)));
+  const icon = MAC ? nativeImage.createFromBuffer(trayIcon(44, true), { scaleFactor: 2 }) : nativeImage.createFromBuffer(trayIcon(32));
+  if (MAC) icon.setTemplateImage(true);
+  tray = new Tray(icon);
   tray.setToolTip('Islet');
   const menu = () => Menu.buildFromTemplate([
     { label: userHidden ? 'Показать остров' : 'Спрятать остров', click: () => { userHidden = !userHidden; applyVisibility(); } },
@@ -2065,7 +2157,8 @@ app.whenReady().then(() => {
   setTimeout(loadApps, 3000 + late);
   checkReminders();
 
-  const onDisplays = () => { updateDisplayRect(); placeIsland(); };
+  loadNotches();
+  const onDisplays = () => { updateDisplayRect(); placeIsland(); loadNotches(); };
   screen.on('display-metrics-changed', onDisplays);
   screen.on('display-added', onDisplays);
   screen.on('display-removed', onDisplays);

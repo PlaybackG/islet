@@ -206,11 +206,11 @@ addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') finish({ action: 'color', hex: hexOf(pixel(cur.x, cur.y)) });
     return;
   }
-  if (e.key === 'Enter') { e.preventDefault(); act(e.ctrlKey || e.shiftKey ? 'save' : 'copy'); }
-  else if (e.ctrlKey && e.code === 'KeyS') { e.preventDefault(); act('save'); }
-  else if (e.ctrlKey && e.code === 'KeyC') { e.preventDefault(); act('copy'); }
-  else if (!e.ctrlKey && e.code === 'KeyT') act('ocr');
-  else if (e.ctrlKey && e.code === 'KeyA') { e.preventDefault(); sel = { x: 0, y: 0, w: st.w, h: st.h }; paint(); showBar(); }
+  if (e.key === 'Enter') { e.preventDefault(); act((e.ctrlKey || e.metaKey) || e.shiftKey ? 'save' : 'copy'); }
+  else if ((e.ctrlKey || e.metaKey) && e.code === 'KeyS') { e.preventDefault(); act('save'); }
+  else if ((e.ctrlKey || e.metaKey) && e.code === 'KeyC') { e.preventDefault(); act('copy'); }
+  else if (!(e.ctrlKey || e.metaKey) && e.code === 'KeyT') act('ocr');
+  else if ((e.ctrlKey || e.metaKey) && e.code === 'KeyA') { e.preventDefault(); sel = { x: 0, y: 0, w: st.w, h: st.h }; paint(); showBar(); }
 });
 
 addEventListener('resize', () => { if (st) { st.k = st.w / innerWidth; paint(); } });

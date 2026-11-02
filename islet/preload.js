@@ -21,6 +21,20 @@ const EVENTS = new Set([
   'claude-ask', 'notifs',
 ]);
 
+// macOS: подписи в разметке написаны для Windows, правим их при загрузке, а не держим две копии.
+if (process.platform === 'darwin') {
+  const mac = (s) => s.replace(/Ctrl\+/g, '⌘').replace(/меню «Пуск»/g, 'папке «Программы»').replace(/Имена \.exe/g, 'Имена программ').replace(/\.exe\b/g, '').replace(/средствами Windows/g, 'в связке ключей').replace(/по Windows/g, 'по системе').replace(/Windows/g, 'macOS');
+  window.addEventListener('DOMContentLoaded', () => {
+    document.documentElement.classList.add('mac');
+    const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    while (walk.nextNode()) walk.currentNode.nodeValue = mac(walk.currentNode.nodeValue);
+    for (const el of document.querySelectorAll('[title], [placeholder]')) {
+      for (const a of ['title', 'placeholder']) if (el.hasAttribute(a)) el.setAttribute(a, mac(el.getAttribute(a)));
+    }
+    document.querySelector('[data-k="hideWinBanners"]')?.closest('.row')?.setAttribute('hidden', '');
+  });
+}
+
 contextBridge.exposeInMainWorld('islet', {
   invoke: (ch, ...a) => (INVOKE.has(ch) ? ipcRenderer.invoke(ch, ...a) : Promise.reject(new Error('channel ' + ch))),
   send: (ch, ...a) => { if (SEND.has(ch)) ipcRenderer.send(ch, ...a); },
